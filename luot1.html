@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bé Vui Sáng Tạo Cùng Những Hình Đáng Yêu</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- CẤU HÌNH GIAO DIỆN (CSS) --- */
+        :root {
+            --bg-color: #FFC0CB;
+            --primary-color: #ff6f91;
+            
+            /* Kích thước bàn cờ */
+            --board-width: 600px;
+            --board-height: 450px; 
+            
+            --shape-size: 80px; /* Kích thước ô hình */
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Patrick Hand', cursive;
+            
+            /* --- CẤU HÌNH HÌNH NỀN --- */
+            background-color: var(--bg-color); 
+            /* 1. Đặt ảnh nền là file nen.jpg */
+            background-image: url('nen.jpg'); 
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .game-container {
+            text-align: center;
+            position: relative;
+            width: var(--board-width);
+            max-width: 95vw;
+        }
+
+        .game-title {
+            color: #fff;
+            text-shadow: 3px 3px 0px #ff6f91;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        /* --- Khung chứa các hình --- */
+        #game-board {
+            position: relative;
+            width: var(--board-width);
+            height: var(--board-height);
+            margin: 0 auto;
+        }
+
+        /* --- Các hình khối --- */
+        .shape {
+            position: absolute;
+            width: var(--shape-size);
+            height: var(--shape-size);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.3s ease;
+        }
+
+        /* Lớp hiển thị hình dạng 2D (Lúc chưa chọn) */
+        .shape-bg {
+            width: 100%;
+            height: 100%;
+            transition: opacity 0.3s;
+        }
+
+        /* 1. Hình Tròn */
+        .type-circle .shape-bg { 
+            background-color: #ff4757; 
+            border-radius: 50%; 
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+        }
+
+        /* 2. Hình Vuông */
+        .type-square .shape-bg { 
+            background-color: #1e90ff; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+        }
+
+        /* 3. Hình Chữ Nhật */
+        .type-rectangle { width: 100px; } 
+        .type-rectangle .shape-bg { 
+            background-color: #9b59b6; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+        }
+
+        /* 4. Hình Trụ */
+        .type-cylinder .shape-bg {
+            background-image: url('khoitru.png'); 
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            transform: scale(0.9); 
+        }
+
+        /* --- Ảnh 3D (Hiện ra khi trúng thưởng) --- */
+        .shape-img-3d {
+            position: absolute;
+            width: 120%;
+            height: 120%;
+            object-fit: contain;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 2;
+        }
+
+        /* --- Hiệu ứng KẾT QUẢ --- */
+        .shape.active { z-index: 100; }
+        .shape.active .shape-bg { opacity: 0; } 
+        .shape.active .shape-img-3d {
+            opacity: 1; 
+            transform: scale(1.8);
+            filter: drop-shadow(0 0 15px rgba(255, 255, 255, 1));
+        }
+
+        /* --- Nhân vật --- */
+        #character {
+            position: absolute;
+            width: 80px;
+            height: 100px;
+            background-image: url('begai.png'); 
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center bottom;
+            z-index: 50;
+            transition: top 0.3s linear, left 0.3s linear;
+            pointer-events: none;
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2));
+        }
+
+        .jumping { animation: jump 0.3s infinite alternate ease-in-out; }
+        @keyframes jump {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-20px); }
+        }
+
+        /* --- Nút bấm --- */
+        .controls {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        button {
+            background-color: #fff;
+            border: 4px solid #fff;
+            padding: 12px 40px;
+            font-size: 1.5rem;
+            font-family: inherit;
+            color: var(--primary-color);
+            border-radius: 50px;
+            box-shadow: 0 6px 15px rgba(255, 111, 145, 0.4);
+            cursor: pointer;
+            transition: transform 0.2s;
+            font-weight: bold;
+        }
+        button:hover { transform: scale(1.05); }
+        .hidden { display: none; }
+
+        /* --- Nút Nhạc --- */
+        #music-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 50px;
+            height: 50px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            border: 2px solid var(--primary-color);
+            color: #333;
+            font-size: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        
+        #music-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* Responsive */
+        @media (max-width: 650px) {
+            .game-container { transform: scale(0.6); transform-origin: top center; }
+            body { align-items: flex-start; padding-top: 20px; }
+            #music-btn { top: -50px; right: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <audio id="bg-music" loop>
+            <source src="music.mp3" type="audio/mpeg">
+        </audio>
+
+        <div id="music-btn" onclick="toggleMusic()">🔇</div>      
+
+        <h1 class="game-title">🎲 Bé Vui Sáng Tạo Cùng Những Hình Đáng Yêu 🎲</h1>
+        
+        <div id="game-board">
+            </div>
+
+        <div class="controls">
+            <button id="btn-start" onclick="startGame()">Bắt đầu chơi! ▶</button>
+            <button id="btn-reset" onclick="resetGame()" class="hidden">Chơi lại ↺</button>
+        </div>
+    </div>
+
+    <script>
+        // --- LOGIC TRÒ CHƠI (JAVASCRIPT) ---
+        
+        const baseShapes = [
+            { type: 'type-circle',    img: 'khoitron.png' ,sound: 'khoicau.wav'},     
+            { type: 'type-square',    img: 'khoivuong.png',sound: 'khoivuong.wav' },    
+            { type: 'type-cylinder',  img: 'khoitru.png',sound: 'khoitru.wav' },      
+            { type: 'type-rectangle', img: 'khoichunhat.png',sound: 'khoichunhat.wav' }   
+        ];
+</div>
+
+    <div id="game-area"></div>
+
+    <script>
+        // 1. KHAI BÁO THƯ VIỆN ÂM THANH
+        // Map tên loại hình khối với file âm thanh tương ứng bạn đã gửi
+        const soundLibrary = {
+            'khoivuong.png': new Audio('khoivuong.wav'),
+            'khoichunhat.png': new Audio('khoichunhat.wav'),
+            'khoitru.png': new Audio('khoitru.wav'),
+            'khoitron.png': new Audio('khoicau.wav')
+        };
+        // Nhân bản lên 3 lần -> 12 hình
+        const shapesConfig = [...baseShapes, ...baseShapes, ...baseShapes];
+
+        const board = document.getElementById('game-board');
+        const startBtn = document.getElementById('btn-start');
+        const resetBtn = document.getElementById('btn-reset');
+        let character;
+        let shapeElements = [];
+        let currentIndex = 0;
+        let isPlaying = false;
+        
+        // Cấu hình nhạc
+        let isMusicOn = false;
+        const musicPlayer = document.getElementById('bg-music');
+        const musicBtn = document.getElementById('music-btn');
+
+        // Hàm bật tắt nhạc
+        function toggleMusic() {
+            if (musicPlayer.paused) {
+                musicPlayer.play().then(() => {
+                    isMusicOn = true;
+                    musicBtn.textContent = "🔊"; 
+                }).catch(e => console.log("Lỗi phát nhạc: " + e));
+            } else {
+                musicPlayer.pause();
+                isMusicOn = false;
+                musicBtn.textContent = "🔇"; 
+            }
+        }
+
+        // Hàm thử tự động phát nhạc
+        function tryPlayMusic() {
+            if (musicPlayer.paused) {
+                musicPlayer.play().then(() => {
+                    isMusicOn = true;
+                    musicBtn.textContent = "🔊";
+                }).catch(e => console.log("Cần click để phát nhạc"));
+            }
+        }
+
+        // Kích thước lưới
+        const COLS = 4; 
+        const ROWS = 3; 
+        const BOARD_WIDTH = 600; 
+        const BOARD_HEIGHT = 450;
+        const SHAPE_W = 100; 
+        const SHAPE_H = 130; 
+
+        function initGame() {
+            board.innerHTML = '';
+            shapeElements = [];
+
+            // Căn giữa lưới
+            const startX = (BOARD_WIDTH - (COLS * SHAPE_W)) / 2 + (SHAPE_W / 2);
+            const startY = (BOARD_HEIGHT - (ROWS * SHAPE_H)) / 2 + (SHAPE_H / 2);
+
+            shapesConfig.forEach((config, index) => {
+                const colIndex = index % COLS;           
+                const rowIndex = Math.floor(index / COLS); 
+
+                const x = startX + (colIndex * SHAPE_W) - 40; 
+                const y = startY + (rowIndex * SHAPE_H) - 40;
+
+                const shapeEl = document.createElement('div');
+                shapeEl.className = `shape ${config.type}`;
+                shapeEl.style.left = `${x}px`;
+                shapeEl.style.top = `${y}px`;
+                
+                shapeEl.innerHTML = `
+                    <div class="shape-bg"></div>
+                    <img src="${config.img}" class="shape-img-3d" alt="Hình khối">
+                `;
+
+                board.appendChild(shapeEl);
+                shapeElements.push({ element: shapeEl, x: x, y: y });
+            });
+
+            // Tạo nhân vật
+            character = document.createElement('div');
+            character.id = 'character';
+            board.appendChild(character);
+            
+            // Đặt bé gái vào vị trí đầu tiên
+            moveCharacterTo(0, false);
+        }
+
+        function moveCharacterTo(index, animate = true) {
+            const target = shapeElements[index];
+            character.style.left = (target.x) + 'px'; 
+            character.style.top = (target.y - 70) + 'px';
+
+            if (animate) {
+                character.classList.add('jumping');
+            } else {
+                character.classList.remove('jumping');
+            }
+        }
+
+        function startGame() {
+            if (isPlaying) return;
+            tryPlayMusic(); 
+            isPlaying = true;
+            
+            startBtn.classList.add('hidden');
+            resetBtn.classList.add('hidden');
+            document.querySelectorAll('.shape').forEach(el => el.classList.remove('active'));
+
+            const loops = 1; 
+            const randomStop = Math.floor(Math.random() * shapesConfig.length);
+            const totalSteps = (shapesConfig.length * loops) + randomStop;
+            
+            let currentStep = 0;
+            
+            function jumpLoop() {
+                if (currentStep < totalSteps) {
+                    // Nhảy theo chiều kim đồng hồ
+                    currentIndex = (currentIndex + 1) % shapesConfig.length;
+                    moveCharacterTo(currentIndex, true);
+                    currentStep++;
+                    
+                    setTimeout(jumpLoop, 350); 
+                } else {
+                    endGame();
+                }
+            }
+            
+            // [QUAN TRỌNG] Phải gọi hàm này thì bé mới bắt đầu nhảy
+            jumpLoop();
+        }
+
+       
+           function endGame() {
+    isPlaying = false;
+    character.classList.remove('jumping');
+    
+    // 1. Hiệu ứng phóng to hình (Visual)
+    const winningShape = shapeElements[currentIndex].element;
+    winningShape.classList.add('active');
+
+    // 2. --- ĐOẠN CODE PHÁT ÂM THANH (AUDIO) ---
+  const baseShapes = [
+    { type: 'type-circle',    img: 'khoitron.png',    sound: 'khoicau.wav' },     
+    { type: 'type-square',    img: 'khoivuong.png',   sound: 'khoivuong.wav' },    
+    { type: 'type-cylinder',  img: 'khoitru.png',     sound: 'khoitru.mp3' },       
+    { type: 'type-rectangle', img: 'khoichunhat.png', sound: 'khoichunhat.wav' }   
+];
+    // ------------------------------------------
+// Hàm xử lý phát âm thanh
+        function playSound(type) {
+            const sound = soundLibrary[type];
+            if (sound) {
+                // Reset thời gian về 0 để nếu click liên tục vẫn phát được ngay
+                sound.currentTime = 0; 
+                sound.play().catch(error => {
+                    console.log("Trình duyệt chặn phát tự động nếu chưa tương tác: ", error);
+                });
+            } else {
+                console.warn("Không tìm thấy âm thanh cho loại: " + type);
+            }
+        }
+    // 3. Hiện nút chơi lại sau 1 giây
+    setTimeout(() => {
+        resetBtn.classList.remove('hidden');
+    }, 1000);
+}
+        function resetGame() {
+            resetBtn.classList.add('hidden');
+            document.querySelectorAll('.shape').forEach(el => el.classList.remove('active'));
+            setTimeout(() => {
+                startGame();
+            }, 300);
+        }
+
+        initGame();
+    </script>
+</body>
+</html>

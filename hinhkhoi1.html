@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bé Vui Sáng Tạo Cùng Những Hình Đáng Yêu</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #FFC0CB;
+            --primary-color: #ff6f91;
+            --board-width: 90vw;  
+            --board-height: 70vh; 
+            --shape-size: 80px;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Patrick Hand', cursive;
+            background-color: var(--bg-color); 
+            background-image: url('nen1.jpg'); 
+            background-size: cover; background-position: center; background-repeat: no-repeat;
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; overflow: hidden; user-select: none;
+        }
+
+        .game-container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Phong cách cho phần tên người thực hiện */
+        .creator-name {
+            font-size: 1.4rem;
+            color: #d84315;
+            margin-top: -10px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+        }
+
+        .game-title {
+            margin-bottom: 5px;
+        }
+
+        #game-board {
+            position: relative; width: var(--board-width); height: var(--board-height);
+            margin: 0 auto;
+        }
+
+        .shape {
+            position: absolute; width: var(--shape-size); height: var(--shape-size);
+            display: flex; justify-content: center; align-items: center;
+            transition: transform 0.3s ease;
+        }
+
+        .shape-bg { width: 100%; height: 100%; transition: opacity 0.3s; }
+
+        .type-circle .shape-bg { background-color: #ff4757; border-radius: 50%; box-shadow: 0 4px 0 rgba(0,0,0,0.1); }
+        .type-square .shape-bg { background-color: #1e90ff; border-radius: 12px; box-shadow: 0 4px 0 rgba(0,0,0,0.1); }
+        .type-rectangle { width: 100px; } 
+        .type-rectangle .shape-bg { background-color: #9b59b6; border-radius: 8px; box-shadow: 0 4px 0 rgba(0,0,0,0.1); }
+        .type-cylinder .shape-bg { 
+            background-image: url('khoitru.png'); background-size: contain; 
+            background-repeat: no-repeat; background-position: center; transform: scale(0.9); 
+        }
+
+        .shape-img-3d {
+            position: absolute; width: 120%; height: 120%;
+            object-fit: contain; opacity: 0; transform: scale(0.5);
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 2;
+        }
+
+        .shape.active { z-index: 100; }
+        .shape.active .shape-bg { opacity: 0; } 
+        .shape.active .shape-img-3d {
+            opacity: 1; transform: scale(1.8);
+            filter: drop-shadow(0 0 15px rgba(255, 255, 255, 1));
+        }
+
+        #character {
+            position: absolute; width: 80px; height: 100px;
+            background-image: url('begai.png'); 
+            background-size: contain; background-repeat: no-repeat; background-position: center bottom;
+            z-index: 50; transition: top 0.3s linear, left 0.3s linear;
+            pointer-events: none; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2));
+        }
+        .jumping { animation: jump 0.3s infinite alternate ease-in-out; }
+        @keyframes jump { 0% { transform: translateY(0); } 100% { transform: translateY(-20px); } }
+
+        .controls { margin-top: 20px; text-align: center; }
+        button {
+            background-color: #fff; border: 4px solid #fff; padding: 12px 40px;
+            font-size: 1.5rem; font-family: inherit; color: var(--primary-color);
+            border-radius: 50px; box-shadow: 0 6px 15px rgba(255, 111, 145, 0.4);
+            cursor: pointer; transition: transform 0.2s; font-weight: bold;
+        }
+        button:hover { transform: scale(1.05); }
+        .hidden { display: none; }
+
+        #music-btn {
+            position: absolute; top: 10px; right: 10px; width: 50px; height: 50px;
+            background-color: rgba(255, 255, 255, 0.9); border-radius: 50%;
+            border: 2px solid var(--primary-color); color: #333; font-size: 24px;
+            display: flex; justify-content: center; align-items: center; cursor: pointer;
+            z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: transform 0.2s;
+        }
+        #music-btn:hover { transform: scale(1.1); }
+
+        @media (max-width: 650px) {
+            .game-container { transform: scale(0.6); transform-origin: top center; }
+            body { align-items: flex-start; padding-top: 20px; }
+            #music-btn { top: -50px; right: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <audio id="bg-music" loop>
+            <source src="music.mp3" type="audio/mpeg">
+        </audio>
+
+        <div id="music-btn" onclick="toggleMusic()">🔇</div>      
+
+        <h1 class="game-title">🎲 Bé Vui Sáng Tạo Cùng Những Hình Đáng Yêu 🎲</h1>
+        <p class="creator-name">Người thực hiện: Trần Hồng Loan</p>
+        
+        <div id="game-board"></div>
+
+        <div class="controls">
+            <button id="btn-start" onclick="startGame()">Bắt đầu chơi! ▶</button>
+            <button id="btn-reset" onclick="resetGame()" class="hidden">Chơi lại ↺</button>
+        </div>
+    </div>
+
+    <script>
+        const baseShapes = [
+            { type: 'type-circle',    img: 'khoitron.png',    sound: 'clap.mp3' },      
+            { type: 'type-square',    img: 'khoivuong.png',   sound: 'clap.mp3' },     
+            { type: 'type-cylinder',  img: 'khoitru.png',     sound: 'clap.mp3' },        
+            { type: 'type-rectangle', img: 'khoichunhat.png', sound: 'clap.mp3' }   
+        ];
+
+        const soundLibrary = {};
+        baseShapes.forEach(item => {
+            soundLibrary[item.sound] = new Audio(item.sound);
+        });
+
+        const shapesConfig = [...baseShapes, ...baseShapes, ...baseShapes];
+
+        const board = document.getElementById('game-board');
+        const startBtn = document.getElementById('btn-start');
+        const resetBtn = document.getElementById('btn-reset');
+        const musicPlayer = document.getElementById('bg-music');
+        const musicBtn = document.getElementById('music-btn');
+
+        let character;
+        let shapeElements = []; 
+        let currentIndex = 0;   
+        let isPlaying = false;  
+
+        const COLS = 4; 
+        const ROWS = 3; 
+        const SHAPE_W = 100; 
+        const SHAPE_H = 130; 
+
+        function initGame() {
+            board.innerHTML = ''; 
+            shapeElements = [];
+            const boardRect = board.getBoundingClientRect();
+            const realWidth = boardRect.width;
+            const realHeight = boardRect.height;
+
+            const colStep = realWidth / COLS; 
+            const rowStep = realHeight / ROWS;
+
+            shapesConfig.forEach((config, index) => {
+                const colIndex = index % COLS;            
+                const rowIndex = Math.floor(index / COLS); 
+
+                const x = (colIndex * colStep) + (colStep / 2) - (SHAPE_W / 2);
+                const y = (rowIndex * rowStep) + (rowStep / 2) - (SHAPE_H / 2);
+
+                const shapeEl = document.createElement('div');
+                shapeEl.className = `shape ${config.type}`;
+                shapeEl.style.left = `${x}px`;
+                shapeEl.style.top = `${y}px`;
+                
+                shapeEl.innerHTML = `
+                    <div class="shape-bg"></div>
+                    <img src="${config.img}" class="shape-img-3d" alt="Hình khối">
+                `;
+
+                board.appendChild(shapeEl);
+                
+                shapeElements.push({ 
+                    element: shapeEl, 
+                    x: x, 
+                    y: y, 
+                    soundFile: config.sound 
+                });
+            });
+
+            character = document.createElement('div');
+            character.id = 'character';
+            board.appendChild(character);
+            moveCharacterTo(0, false);
+        }
+
+        window.addEventListener('resize', () => {
+             isPlaying = false;
+             startBtn.classList.remove('hidden');
+             resetBtn.classList.add('hidden');
+             initGame();
+        });
+
+        function moveCharacterTo(index, animate = true) {
+            const target = shapeElements[index];
+            character.style.left = (target.x) + 'px'; 
+            character.style.top = (target.y - 70) + 'px'; 
+
+            if (animate) {
+                character.classList.add('jumping');
+            } else {
+                character.classList.remove('jumping');
+            }
+        }
+
+        function startGame() {
+            if (isPlaying) return;
+            tryPlayBackgroundMusic();
+            isPlaying = true;
+            startBtn.classList.add('hidden');
+            resetBtn.classList.add('hidden');
+            document.querySelectorAll('.shape').forEach(el => el.classList.remove('active'));
+
+            const loops = 1; 
+            const randomStop = Math.floor(Math.random() * shapesConfig.length); 
+            const totalSteps = (shapesConfig.length * loops) + randomStop;
+            let currentStep = 0;
+            
+            function jumpLoop() {
+                if (currentStep < totalSteps) {
+                    currentIndex = (currentIndex + 1) % shapesConfig.length;
+                    moveCharacterTo(currentIndex, true);
+                    currentStep++;
+                    setTimeout(jumpLoop, 600); 
+                } else {
+                    endGame();
+                }
+            }
+            jumpLoop();
+        }
+
+        function endGame() {
+            isPlaying = false;
+            character.classList.remove('jumping'); 
+            const currentItem = shapeElements[currentIndex];
+            currentItem.element.classList.add('active');
+            playSoundResult(currentItem.soundFile);
+
+            setTimeout(() => {
+                resetBtn.classList.remove('hidden');
+            }, 1500);
+        }
+
+        function playSoundResult(fileName) {
+            const sound = soundLibrary[fileName];
+            if (sound) {
+                sound.currentTime = 0; 
+                sound.play().catch(err => console.log("Lỗi phát âm thanh:", err));
+            }
+        }
+
+        function toggleMusic() {
+            if (musicPlayer.paused) {
+                musicPlayer.play().then(() => {
+                    musicBtn.textContent = "🔊"; 
+                }).catch(e => console.log(e));
+            } else {
+                musicPlayer.pause();
+                musicBtn.textContent = "🔇"; 
+            }
+        }
+
+        function tryPlayBackgroundMusic() {
+            if (musicPlayer.paused) {
+                musicPlayer.play().then(() => {
+                    musicBtn.textContent = "🔊";
+                }).catch(() => { });
+            }
+        }
+
+        function resetGame() {
+            resetBtn.classList.add('hidden');
+            document.querySelectorAll('.shape').forEach(el => el.classList.remove('active'));
+            setTimeout(() => {
+                startGame();
+            }, 300);
+        }
+
+        initGame();
+    </script>
+</body>
+</html>
