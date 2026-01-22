@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bé Vui Sáng Tạo Cùng Những Hình Đáng Yêu</title>
+    <title>Bé Vui Sáng Tạo - Tổng Hợp</title>
     <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
     
     <style>
+        /* --- PHẦN 1: CSS CHUNG --- */
         :root {
             --bg-color: #FFC0CB;
             --primary-color: #ff6f91;
-            --board-width: 90vw;  
-            --board-height: 70vh; 
+            --board-width: 90vw;
+            --board-height: 65vh;
             --shape-size: 80px;
         }
 
@@ -19,56 +20,87 @@
             margin: 0; padding: 0;
             font-family: 'Patrick Hand', cursive;
             background-color: var(--bg-color); 
-            background-image: url('nen1.jpg'); 
-            background-size: cover; background-position: center; background-repeat: no-repeat;
+            background-image: url('nen.jpg'); /* Đảm bảo bạn có file nen.jpg */
+            background-size: cover; background-position: center;
             display: flex; justify-content: center; align-items: center;
             height: 100vh; overflow: hidden; user-select: none;
         }
 
-        .game-container {
-            width: 100%;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+        .container {
+            width: 100%; height: 100vh;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            position: relative;
         }
 
-        /* Phong cách cho phần tên người thực hiện */
-        .creator-name {
-            font-size: 1.4rem;
-            color: #d84315;
-            margin-top: -10px;
-            margin-bottom: 10px;
-            font-weight: bold;
-            text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+        .hidden { display: none !important; }
+
+        /* --- PHẦN 2: GIAO DIỆN MENU (Màn hình chính) --- */
+        #menu-screen {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(8px);
+            padding: 40px; border-radius: 30px;
+            border: 4px solid #fff;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            animation: popIn 0.5s ease;
         }
 
-        .game-title {
-            margin-bottom: 5px;
+        .menu-title {
+            font-size: 3rem; color: #d63031;
+            margin-bottom: 10px; text-shadow: 2px 2px #fff;
         }
+
+        .author {
+            font-size: 1.5rem; color: #333; margin-bottom: 30px;
+            background: #fff; display: inline-block; padding: 5px 20px;
+            border-radius: 20px; font-weight: bold;
+        }
+
+        .btn-group { display: flex; gap: 20px; justify-content: center; }
+
+        .menu-btn {
+            width: 180px; height: 180px;
+            border-radius: 20px; border: 4px solid #fff;
+            font-size: 1.5rem; font-family: inherit; font-weight: bold;
+            cursor: pointer; transition: 0.3s;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .btn-game1 { background: #ffeaa7; color: #d35400; }
+        .btn-game2 { background: #74b9ff; color: #0984e3; }
+
+        .menu-btn:hover { transform: scale(1.05) translateY(-5px); box-shadow: 0 15px 20px rgba(0,0,0,0.2); }
+        .icon { font-size: 3.5rem; margin-bottom: 10px; }
+
+        /* --- PHẦN 3: GIAO DIỆN GAME (Bàn cờ) --- */
+        #game-screen {
+            width: 100%; display: flex; flex-direction: column; align-items: center;
+        }
+
+        .game-header { text-align: center; margin-bottom: 5px; }
+        .game-title { font-size: 2rem; color: #fff; text-shadow: 2px 2px var(--primary-color); margin: 0; }
 
         #game-board {
             position: relative; width: var(--board-width); height: var(--board-height);
-            margin: 0 auto;
+            margin: 10px auto;
         }
 
+        /* Style các hình khối */
         .shape {
             position: absolute; width: var(--shape-size); height: var(--shape-size);
             display: flex; justify-content: center; align-items: center;
             transition: transform 0.3s ease;
         }
-
         .shape-bg { width: 100%; height: 100%; transition: opacity 0.3s; }
-
-        .type-circle .shape-bg { background-color: #ff4757; border-radius: 50%; box-shadow: 0 4px 0 rgba(0,0,0,0.1); }
-        .type-square .shape-bg { background-color: #1e90ff; border-radius: 12px; box-shadow: 0 4px 0 rgba(0,0,0,0.1); }
+        
+        /* Màu nền cho các loại hình (khi chưa hiện ảnh thật) */
+        .type-circle .shape-bg { background-color: #ff4757; border-radius: 50%; }
+        .type-square .shape-bg { background-color: #1e90ff; border-radius: 12px; }
         .type-rectangle { width: 100px; } 
-        .type-rectangle .shape-bg { background-color: #9b59b6; border-radius: 8px; box-shadow: 0 4px 0 rgba(0,0,0,0.1); }
-        .type-cylinder .shape-bg { 
-            background-image: url('khoitru.png'); background-size: contain; 
-            background-repeat: no-repeat; background-position: center; transform: scale(0.9); 
-        }
+        .type-rectangle .shape-bg { background-color: #9b59b6; border-radius: 8px; }
+        .type-cylinder .shape-bg { background-image: url('khoitru.png'); background-size: contain; transform: scale(0.9); background-repeat: no-repeat; background-position: center;}
 
         .shape-img-3d {
             position: absolute; width: 120%; height: 120%;
@@ -83,6 +115,7 @@
             filter: drop-shadow(0 0 15px rgba(255, 255, 255, 1));
         }
 
+        /* Nhân vật */
         #character {
             position: absolute; width: 80px; height: 100px;
             background-image: url('begai.png'); 
@@ -92,98 +125,169 @@
         }
         .jumping { animation: jump 0.3s infinite alternate ease-in-out; }
         @keyframes jump { 0% { transform: translateY(0); } 100% { transform: translateY(-20px); } }
+        @keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
 
-        .controls { margin-top: 20px; text-align: center; }
+        /* Nút điều khiển */
+        .controls { margin-top: 10px; display: flex; gap: 15px; }
         button {
-            background-color: #fff; border: 4px solid #fff; padding: 12px 40px;
-            font-size: 1.5rem; font-family: inherit; color: var(--primary-color);
-            border-radius: 50px; box-shadow: 0 6px 15px rgba(255, 111, 145, 0.4);
-            cursor: pointer; transition: transform 0.2s; font-weight: bold;
+            background-color: #fff; border: 3px solid #fff; padding: 10px 25px;
+            font-size: 1.2rem; font-family: inherit; color: var(--primary-color);
+            border-radius: 50px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            cursor: pointer; transition: 0.2s; font-weight: bold;
         }
         button:hover { transform: scale(1.05); }
-        .hidden { display: none; }
+        .btn-home { background-color: #ff7675; color: white; border-color: #ff7675; }
 
         #music-btn {
             position: absolute; top: 10px; right: 10px; width: 50px; height: 50px;
-            background-color: rgba(255, 255, 255, 0.9); border-radius: 50%;
-            border: 2px solid var(--primary-color); color: #333; font-size: 24px;
+            background: rgba(255,255,255,0.9); border-radius: 50%;
             display: flex; justify-content: center; align-items: center; cursor: pointer;
-            z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: transform 0.2s;
+            z-index: 1000; font-size: 24px; border: 2px solid var(--primary-color);
         }
-        #music-btn:hover { transform: scale(1.1); }
 
         @media (max-width: 650px) {
-            .game-container { transform: scale(0.6); transform-origin: top center; }
-            body { align-items: flex-start; padding-top: 20px; }
-            #music-btn { top: -50px; right: 0; }
+            .container { transform: scale(0.9); }
+            .btn-group { flex-direction: column; }
+            .menu-btn { width: 100%; height: 120px; flex-direction: row; gap: 20px; }
+            .icon { margin-bottom: 0; }
         }
     </style>
 </head>
 <body>
 
-    <div class="game-container">
-        <audio id="bg-music" loop>
-            <source src="music.mp3" type="audio/mpeg">
-        </audio>
+    <audio id="bg-music" loop><source src="music.mp3" type="audio/mpeg"></audio>
+    <div id="music-btn" onclick="toggleMusic()">🔇</div>
 
-        <div id="music-btn" onclick="toggleMusic()">🔇</div>      
-
-        <h1 class="game-title">🎲 Bé Vui Sáng Tạo Cùng Những Hình Đáng Yêu 🎲</h1>
-        <p class="creator-name">Người thực hiện: Trần Hồng Loan</p>
+    <div class="container">
         
-        <div id="game-board"></div>
-
-        <div class="controls">
-            <button id="btn-start" onclick="startGame()">Bắt đầu chơi! ▶</button>
-            <button id="btn-reset" onclick="resetGame()" class="hidden">Chơi lại ↺</button>
+        <div id="menu-screen">
+            <h1 class="menu-title">🌟 Bé Vui Học Toán 🌟</h1>
+            <div class="author">GV: Trần Hồng Loan</div>
+            <div class="btn-group">
+                <div class="menu-btn btn-game1" onclick="selectGame(1)">
+                    <div class="icon">🎲</div>
+                    <div>
+                        <div>Trò chơi 1</div>
+                        <small>Hình khối cơ bản</small>
+                    </div>
+                </div>
+                <div class="menu-btn btn-game2" onclick="selectGame(2)">
+                    <div class="icon">🧩</div>
+                    <div>
+                        <div>Trò chơi 2</div>
+                        <small>Thử thách tư duy</small>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <div id="game-screen" class="hidden">
+            <div class="game-header">
+                <h2 id="current-game-title" class="game-title">Tên Trò Chơi</h2>
+            </div>
+
+            <div id="game-board"></div>
+
+            <div class="controls">
+                <button id="btn-start" onclick="startGame()">Bắt đầu ▶</button>
+                <button id="btn-reset" onclick="resetGame()" class="hidden">Chơi lại ↺</button>
+                <button class="btn-home" onclick="backToMenu()">🏠 Về Menu</button>
+            </div>
+        </div>
+
     </div>
 
     <script>
-        const baseShapes = [
+        // --- CẤU HÌNH DỮ LIỆU 2 GAME Ở ĐÂY ---
+        
+        // Dữ liệu Game 1 (Lấy từ luot2.html cũ)
+        const game1Data = [
             { type: 'type-circle',    img: 'khoitron.png',    sound: 'clap.mp3' },      
             { type: 'type-square',    img: 'khoivuong.png',   sound: 'clap.mp3' },     
             { type: 'type-cylinder',  img: 'khoitru.png',     sound: 'clap.mp3' },        
-            { type: 'type-rectangle', img: 'khoichunhat.png', sound: 'clap.mp3' }   
+            { type: 'type-rectangle', img: 'khoichunhat.png', sound: 'clap.mp3' } 
         ];
 
-        const soundLibrary = {};
-        baseShapes.forEach(item => {
-            soundLibrary[item.sound] = new Audio(item.sound);
-        });
+        // Dữ liệu Game 2 (Lấy từ index1.html cũ - Có thể thay đổi ảnh/nhạc khác)
+        const game2Data = [
+            { type: 'type-circle',    img: 'bong.jpg',       sound: 'khoicau.wav' },      
+            { type: 'type-square',    img: 'rubik.jpg',      sound: 'khoivuong.wav' },     
+            { type: 'type-cylinder',  img: 'suagau.jpg',     sound: 'khoitru.wav' },        
+            { type: 'type-rectangle', img: 'hopsua.png',     sound: 'khoichunhat.wav' } 
+        ];
 
-        const shapesConfig = [...baseShapes, ...baseShapes, ...baseShapes];
-
-        const board = document.getElementById('game-board');
-        const startBtn = document.getElementById('btn-start');
-        const resetBtn = document.getElementById('btn-reset');
-        const musicPlayer = document.getElementById('bg-music');
-        const musicBtn = document.getElementById('music-btn');
-
+        // --- BIẾN TOÀN CỤC ---
+        let currentShapesConfig = []; // Chứa dữ liệu game đang chọn
+        let soundLibrary = {};
         let character;
         let shapeElements = []; 
         let currentIndex = 0;   
-        let isPlaying = false;  
+        let isPlaying = false;
+        
+        const board = document.getElementById('game-board');
+        const startBtn = document.getElementById('btn-start');
+        const resetBtn = document.getElementById('btn-reset');
+        const menuScreen = document.getElementById('menu-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const gameTitleLabel = document.getElementById('current-game-title');
+        const musicPlayer = document.getElementById('bg-music');
+        const musicBtn = document.getElementById('music-btn');
 
-        const COLS = 4; 
-        const ROWS = 3; 
-        const SHAPE_W = 100; 
-        const SHAPE_H = 130; 
+        const COLS = 4; ROWS = 3; SHAPE_W = 100; SHAPE_H = 130;
+
+        // --- HÀM XỬ LÝ CHUYỂN MÀN HÌNH ---
+
+        function selectGame(gameId) {
+            // 1. Chọn dữ liệu dựa trên gameId
+            let baseData = [];
+            if (gameId === 1) {
+                baseData = game1Data;
+                gameTitleLabel.innerText = "🎲 Trò Chơi Hình Khối 🎲";
+            } else {
+                baseData = game2Data;
+                gameTitleLabel.innerText = "🧩 Thử Thách Trí Nhớ 🧩";
+            }
+
+            // 2. Nhân bản dữ liệu lên để đủ ô (3 lần)
+            currentShapesConfig = [...baseData, ...baseData, ...baseData];
+
+            // 3. Nạp âm thanh cho game đó
+            soundLibrary = {};
+            baseData.forEach(item => {
+                if(item.sound) soundLibrary[item.sound] = new Audio(item.sound);
+            });
+
+            // 4. Chuyển giao diện
+            menuScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+
+            // 5. Khởi tạo bàn cờ
+            initGame();
+        }
+
+        function backToMenu() {
+            isPlaying = false;
+            gameScreen.classList.add('hidden');
+            menuScreen.classList.remove('hidden');
+            resetBtn.classList.add('hidden');
+            startBtn.classList.remove('hidden');
+            
+            // Dừng nhạc nền game nếu cần
+            // musicPlayer.pause(); 
+        }
+
+        // --- LOGIC GAME (DÙNG CHUNG) ---
 
         function initGame() {
             board.innerHTML = ''; 
             shapeElements = [];
             const boardRect = board.getBoundingClientRect();
-            const realWidth = boardRect.width;
-            const realHeight = boardRect.height;
+            const colStep = boardRect.width / COLS; 
+            const rowStep = boardRect.height / ROWS;
 
-            const colStep = realWidth / COLS; 
-            const rowStep = realHeight / ROWS;
-
-            shapesConfig.forEach((config, index) => {
+            currentShapesConfig.forEach((config, index) => {
                 const colIndex = index % COLS;            
                 const rowIndex = Math.floor(index / COLS); 
-
                 const x = (colIndex * colStep) + (colStep / 2) - (SHAPE_W / 2);
                 const y = (rowIndex * rowStep) + (rowStep / 2) - (SHAPE_H / 2);
 
@@ -192,19 +296,14 @@
                 shapeEl.style.left = `${x}px`;
                 shapeEl.style.top = `${y}px`;
                 
+                // Dùng ảnh mặc định nếu không có ảnh riêng
                 shapeEl.innerHTML = `
                     <div class="shape-bg"></div>
-                    <img src="${config.img}" class="shape-img-3d" alt="Hình khối">
+                    <img src="${config.img}" class="shape-img-3d" alt="Hinh" onerror="this.style.display='none'">
                 `;
 
                 board.appendChild(shapeEl);
-                
-                shapeElements.push({ 
-                    element: shapeEl, 
-                    x: x, 
-                    y: y, 
-                    soundFile: config.sound 
-                });
+                shapeElements.push({ element: shapeEl, x: x, y: y, soundFile: config.sound });
             });
 
             character = document.createElement('div');
@@ -213,23 +312,13 @@
             moveCharacterTo(0, false);
         }
 
-        window.addEventListener('resize', () => {
-             isPlaying = false;
-             startBtn.classList.remove('hidden');
-             resetBtn.classList.add('hidden');
-             initGame();
-        });
-
         function moveCharacterTo(index, animate = true) {
+            if (!shapeElements[index]) return;
             const target = shapeElements[index];
             character.style.left = (target.x) + 'px'; 
             character.style.top = (target.y - 70) + 'px'; 
-
-            if (animate) {
-                character.classList.add('jumping');
-            } else {
-                character.classList.remove('jumping');
-            }
+            if (animate) character.classList.add('jumping');
+            else character.classList.remove('jumping');
         }
 
         function startGame() {
@@ -240,17 +329,16 @@
             resetBtn.classList.add('hidden');
             document.querySelectorAll('.shape').forEach(el => el.classList.remove('active'));
 
-            const loops = 1; 
-            const randomStop = Math.floor(Math.random() * shapesConfig.length); 
-            const totalSteps = (shapesConfig.length * loops) + randomStop;
+            const randomStop = Math.floor(Math.random() * currentShapesConfig.length); 
+            const totalSteps = currentShapesConfig.length + randomStop; // Chạy ít nhất 1 vòng
             let currentStep = 0;
             
             function jumpLoop() {
                 if (currentStep < totalSteps) {
-                    currentIndex = (currentIndex + 1) % shapesConfig.length;
+                    currentIndex = (currentIndex + 1) % currentShapesConfig.length;
                     moveCharacterTo(currentIndex, true);
                     currentStep++;
-                    setTimeout(jumpLoop, 600); 
+                    setTimeout(jumpLoop, 500); // Tốc độ nhảy
                 } else {
                     endGame();
                 }
@@ -264,48 +352,49 @@
             const currentItem = shapeElements[currentIndex];
             currentItem.element.classList.add('active');
             playSoundResult(currentItem.soundFile);
-
-            setTimeout(() => {
-                resetBtn.classList.remove('hidden');
-            }, 1500);
+            setTimeout(() => { resetBtn.classList.remove('hidden'); }, 1500);
         }
 
         function playSoundResult(fileName) {
             const sound = soundLibrary[fileName];
             if (sound) {
                 sound.currentTime = 0; 
-                sound.play().catch(err => console.log("Lỗi phát âm thanh:", err));
-            }
-        }
-
-        function toggleMusic() {
-            if (musicPlayer.paused) {
-                musicPlayer.play().then(() => {
-                    musicBtn.textContent = "🔊"; 
-                }).catch(e => console.log(e));
-            } else {
-                musicPlayer.pause();
-                musicBtn.textContent = "🔇"; 
-            }
-        }
-
-        function tryPlayBackgroundMusic() {
-            if (musicPlayer.paused) {
-                musicPlayer.play().then(() => {
-                    musicBtn.textContent = "🔊";
-                }).catch(() => { });
+                sound.play().catch(e => console.log("Audio Error", e));
             }
         }
 
         function resetGame() {
             resetBtn.classList.add('hidden');
             document.querySelectorAll('.shape').forEach(el => el.classList.remove('active'));
-            setTimeout(() => {
-                startGame();
-            }, 300);
+            setTimeout(() => startGame(), 300);
         }
 
-        initGame();
+        // --- NHẠC NỀN & SỰ KIỆN ---
+
+        function toggleMusic() {
+            if (musicPlayer.paused) {
+                musicPlayer.play();
+                musicBtn.textContent = "🔊";
+            } else {
+                musicPlayer.pause();
+                musicBtn.textContent = "🔇";
+            }
+        }
+
+        function tryPlayBackgroundMusic() {
+            if (musicPlayer.paused) {
+                musicPlayer.play().then(() => musicBtn.textContent = "🔊").catch(()=>{});
+            }
+        }
+
+        window.addEventListener('resize', () => {
+             if (!menuScreen.classList.contains('hidden')) return; // Không reset nếu đang ở menu
+             isPlaying = false;
+             startBtn.classList.remove('hidden');
+             resetBtn.classList.add('hidden');
+             initGame();
+        });
+
     </script>
 </body>
 </html>
