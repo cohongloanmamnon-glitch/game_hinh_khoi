@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BÉ VUI SÁNG TẠO - KIẾN TRÚC SƯ NHÍ</title>
+    <meta name="author" content="TRẦN HỒNG LOAN"> 
+    <style>
+        :root {
+            --primary-color: #FF9800;
+            --secondary-color: #00796B;
+            --bg-color: #E0F7FA;
+            --zone-bg: #FFFFFF;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            background-image: url('nen.jpg'); 
+            background-size: cover;
+            background-position: center;
+            user-select: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        /* --- Header Chính --- */
+        #main-header {
+            width: 100%;
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 10px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 50;
+            border-bottom: 3px solid var(--primary-color);
+            flex-shrink: 0;
+        }
+
+        .game-title {
+            color: var(--primary-color);
+            font-size: 1.6rem;
+            font-weight: 900;
+            margin: 0;
+            text-transform: uppercase;
+            text-shadow: 1px 1px 0px #ffe0b2;
+        }
+
+        .author-name {
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin: 2px 0 0 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* --- Nút nhạc --- */
+        #music-btn {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 100;
+            background-color: #ffffff;
+            border: 2px solid #FF9800;
+            color: #FF9800;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        #music-btn.playing {
+            background-color: #4CAF50;
+            border-color: #4CAF50;
+            color: white;
+        }
+
+        /* --- Robot Bo --- */
+        #header-area {
+            width: 95%;
+            max-width: 900px;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 5px 15px;
+            display: flex;
+            align-items: center;
+            border-radius: 15px;
+            margin-top: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+
+        .robot-avatar {
+            font-size: 2.5rem;
+            margin-right: 15px;
+            animation: bounce 2s infinite;
+        }
+
+        .robot-dialogue {
+            font-size: 1.1rem;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .talking { color: #e65100; }
+
+        /* --- Game Info --- */
+        #info-bar {
+            width: 95%;
+            max-width: 900px;
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 10px;
+            margin: 5px 0;
+            font-weight: bold;
+            color: #00796B;
+            background: rgba(255,255,255,0.6);
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+
+        /* --- Game Container --- */
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            width: 98%;
+            max-width: 1200px;
+            flex-grow: 1;
+            gap: 10px;
+            padding-bottom: 10px;
+            overflow-y: auto;
+            justify-content: space-evenly; /* Căn đều không gian dọc */
+        }
+
+        /* KHU VỰC VẬT THỂ (ITEMS) - TĂNG KÍCH THƯỚC */
+        #items-row {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap; /* Cho phép xuống dòng nếu màn hình bé */
+            gap: 20px; /* Khoảng cách rộng hơn */
+            padding: 15px;
+            background: rgba(255,255,255,0.7);
+            border-radius: 15px;
+            min-height: 140px; /* Tăng chiều cao */
+            align-items: center;
+            border: 2px solid #fff;
+        }
+
+        .draggable {
+            width: 110px; /* Tăng từ 80px lên 110px */
+            height: 120px; /* Tăng từ 90px lên 120px */
+            cursor: grab;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            font-size: 0.9rem; font-weight: bold; text-align: center;
+            background: white; border-radius: 15px;
+            box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+            transition: transform 0.2s; user-select: none; padding: 5px;
+        }
+
+        .draggable img {
+            width: 80px; /* Tăng ảnh to hơn */
+            height: 80px;
+            margin-bottom: 5px; pointer-events: none; object-fit: contain;
+        }
+
+        .draggable:active { transform: scale(1.1); cursor: grabbing; }
+
+        /* KHU VỰC GIỎ (ZONES) */
+        #zones-row {
+            display: flex; /* Đổi sang Flex để linh hoạt số lượng cột */
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            flex-grow: 1;
+            align-items: center;
+        }
+
+        .drop-zone {
+            background-color: var(--zone-bg);
+            border: 3px dashed #B0BEC5;
+            border-radius: 20px;
+            display: flex; flex-direction: column;
+            align-items: center; padding: 10px;
+            transition: all 0.3s; position: relative; justify-content: center;
+            width: 130px; /* Định kích thước cố định cho giỏ */
+            height: 140px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.05);
+        }
+
+        .drop-zone.active-zone {
+            border-color: var(--primary-color);
+            background-color: #FFF3E0;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(255, 152, 0, 0.5);
+        }
+
+        .zone-title { font-size: 1rem; font-weight: bold; color: #555; margin-bottom: 8px; pointer-events: none; }
+        .zone-icon-img { width: 70px; height: 70px; opacity: 0.8; object-fit: contain; }
+
+        /* --- Modal --- */
+        #level-complete-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none; justify-content: center; align-items: center;
+            z-index: 200;
+        }
+        .modal-content {
+            background: white; padding: 30px; border-radius: 20px;
+            text-align: center; animation: popIn 0.4s; max-width: 90%;
+            border: 6px solid var(--primary-color);
+        }
+        .btn {
+            background: #4CAF50; color: white; border: none;
+            padding: 15px 30px; font-size: 1.3rem; border-radius: 40px;
+            cursor: pointer; margin: 10px; box-shadow: 0 5px 0 #388E3C;
+        }
+        .btn:active { transform: translateY(4px); box-shadow: none; }
+        .btn-restart { background: #FF5722; box-shadow: 0 5px 0 #D84315; }
+
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
+        
+        /* Mobile Responsive */
+        @media (max-width: 600px) {
+            .game-title { font-size: 1.1rem; }
+            .robot-avatar { font-size: 2rem; }
+            .draggable { width: 70px; height: 80px; font-size: 0.7rem; }
+            .draggable img { width: 45px; height: 45px; }
+            .drop-zone { width: 80px; height: 90px; }
+            .zone-icon-img { width: 40px; height: 40px; }
+            .zone-title { font-size: 0.7rem; }
+            #items-row { gap: 10px; min-height: 100px; }
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="bg-music" loop><source src="music.mp3" type="audio/mpeg"></audio>
+    <audio id="robot-voice"></audio>
+    <button id="music-btn" onclick="toggleMusic()">🔇 Bật Nhạc</button>
+
+    <div id="main-header">
+        <h1 class="game-title">BÉ VUI SÁNG TẠO CÙNG NHỮNG HÌNH ĐÁNG YÊU</h1>
+        <h3 class="author-name">Người thực hiện: TRẦN HỒNG LOAN</h3>
+    </div>
+
+    <div id="header-area">
+        <div class="robot-avatar">🤖</div>
+        <div class="robot-dialogue" id="robot-text">Bíp bíp! Đang tải dữ liệu...</div>
+    </div>
+
+    <div id="info-bar">
+        <span id="level-indicator">Màn 1/3</span>
+        <span id="score-indicator">Tiến độ: 0/4</span>
+    </div>
+
+    <div id="game-container">
+        <div id="zones-row"></div>
+        <div id="items-row"></div>
+    </div>
+
+    <div id="level-complete-modal">
+        <div class="modal-content">
+            <h2 id="modal-title">Hoàn thành!</h2>
+            <p id="modal-msg" style="font-size: 1.2rem;">Bạn làm tốt lắm!</p>
+            <div>
+                <button class="btn btn-restart" onclick="restartLevel()">Chơi lại ↺</button>
+                <button class="btn" id="next-btn" onclick="nextLevel()">Màn tiếp theo ➔</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- ÂM THANH ---
+        const bgMusic = document.getElementById('bg-music');
+        const robotVoice = document.getElementById('robot-voice');
+        const musicBtn = document.getElementById('music-btn');
+        let isMusicPlaying = false;
+
+        function toggleMusic() {
+            if (isMusicPlaying) {
+                bgMusic.pause();
+                musicBtn.innerHTML = "🔇 Bật Nhạc";
+                musicBtn.classList.remove('playing');
+                isMusicPlaying = false;
+            } else {
+                bgMusic.play().catch(e => console.log("Cần tương tác"));
+                musicBtn.innerHTML = "🎵 Tắt Nhạc";
+                musicBtn.classList.add('playing');
+                isMusicPlaying = true;
+            }
+        }
+
+        function playRobot(src) {
+            robotVoice.src = src;
+            if (isMusicPlaying) bgMusic.volume = 0.3;
+            robotVoice.play().then(() => {
+                document.getElementById('robot-text').classList.add('talking');
+            }).catch(() => {});
+            robotVoice.onended = () => {
+                if (isMusicPlaying) bgMusic.volume = 1.0;
+                document.getElementById('robot-text').classList.remove('talking');
+            };
+        }
+
+        document.body.addEventListener('click', function() {
+            if (!isMusicPlaying) {
+                bgMusic.play().then(() => {
+                    musicBtn.innerHTML = "🎵 Tắt Nhạc";
+                    musicBtn.classList.add('playing');
+                    isMusicPlaying = true;
+                }).catch(() => {});
+            }
+        }, { once: true });
+
+        // --- CẤU HÌNH DỮ LIỆU GAME (Đã thêm Khối Tam Giác) ---
+        const gameData = [
+            {
+                level: 1,
+                title: "Khởi động: Tròn & Vuông",
+                introText: "Chào bé! Hãy tìm giúp tớ Quả Tròn và Hộp Vuông nhé!",
+                introAudio: "c1a.wav",
+                successText: "Giỏi quá! Bé đã phân biệt được Tròn và Vuông rồi!",
+                successAudio: "c1b.wav",
+                types: ['sphere', 'cube'],
+                items: [
+                    { id: 'i1', name: 'Quả Cam', type: 'sphere', img: 'cam.jpg' },
+                    { id: 'i2', name: 'Hộp Quà', type: 'cube', img: 'hopqua.png' },
+                    { id: 'i3', name: 'Bóng Đá', type: 'sphere', img: 'bong.jpg' },
+                    { id: 'i4', name: 'Rubik', type: 'cube', img: 'rubik.jpg' }
+                ]
+            },
+            {
+                level: 2,
+                title: "Tăng tốc: Trụ, Chữ Nhật & Tam Giác",
+                introText: "Màn 2: Hãy tìm Lon Nước, Hộp Sữa và cả Kim Tự Tháp (Tam giác) nữa nhé!",
+                introAudio: "c2a.wav",
+                successText: "Hoan hô! Bé thật tinh mắt!",
+                successAudio: "c2b.wav",
+                // Thêm 'pyramid' vào màn 2
+                types: ['cylinder', 'rect', 'pyramid'],
+                items: [
+                    { id: 'i5', name: 'Lon Nước', type: 'cylinder', img: 'lonnuoc.jpg' },
+                    { id: 'i6', name: 'Hộp Sữa', type: 'rect', img: 'hopsua.png' },
+                    { id: 'i7', name: 'Kim Tự Tháp', type: 'pyramid', img: 'kimtuthap.jpg' }, /* Ảnh mới */
+                    { id: 'i8', name: 'Quyển Sách', type: 'rect', img: 'sach.jpg' },
+                    { id: 'i9', name: 'Khối Gỗ', type: 'pyramid', img: 'khoitamgiac.jpg' } /* Ảnh mới */
+                ]
+            },
+            {
+                level: 3,
+                title: "Thử thách: Tổng hợp 5 loại",
+                introText: "Thử thách cuối cùng: Hãy dọn dẹp tất cả đồ vật, cả Đỉnh Fansipan nữa nhé!",
+                introAudio: "c3a.wav",
+                successText: "Tuyệt đỉnh! Bé là Kiến trúc sư tài ba nhất quả đất!",
+                successAudio: "c3b.wav",
+                // Thử thách 5 loại hình khối
+                types: ['sphere', 'cylinder', 'cube', 'rect', 'pyramid'],
+                items: [
+                    { id: 'i1', name: 'Quả Cam', type: 'sphere', img: 'cam.jpg' },
+                    { id: 'i5', name: 'Lon Nước', type: 'cylinder', img: 'lonnuoc.jpg' },
+                    { id: 'i2', name: 'Hộp Quà', type: 'cube', img: 'hopqua.png' },
+                    { id: 'i6', name: 'Hộp Sữa', type: 'rect', img: 'hopsua.png' },
+                    { id: 'i10', name: 'Đỉnh Fansipan', type: 'pyramid', img: 'hinh_chop_tu_giac_deu_6_b40c372f0a.png' }, /* Ảnh mới */
+                    { id: 'i11', name: 'Địa Cầu', type: 'sphere', img: 'qua.jpg' }
+                ]
+            }
+        ];
+
+        // Định nghĩa hiển thị Giỏ hàng
+        // Lưu ý: Tôi dùng ảnh 'khoitamgiac.jpg' làm biểu tượng cho giỏ Tam Giác
+        const zoneDefinitions = {
+            'sphere': { label: 'Khối Cầu', icon: 'khoitron.png' },
+            'cube': { label: 'Lập Phương', icon: 'khoivuong.png' },
+            'cylinder': { label: 'Khối Trụ', icon: 'khoitru.png' },
+            'rect': { label: 'Chữ Nhật', icon: 'khoichunhat.png' },
+            'pyramid': { label: 'Tam Giác', icon: 'khoitamgiac.jpg' } /* Mới */
+        };
+
+        // --- LOGIC GAME ---
+        let currentLevelIndex = 0;
+        let correctCount = 0;
+        let totalItems = 0;
+
+        const robotText = document.getElementById('robot-text');
+        const levelIndicator = document.getElementById('level-indicator');
+        const scoreIndicator = document.getElementById('score-indicator');
+        const zonesRow = document.getElementById('zones-row');
+        const itemsRow = document.getElementById('items-row');
+        const modal = document.getElementById('level-complete-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMsg = document.getElementById('modal-msg');
+        const nextBtn = document.getElementById('next-btn');
+
+        window.onload = () => loadLevel(0);
+
+        function loadLevel(index) {
+            currentLevelIndex = index;
+            const levelData = gameData[index];
+            correctCount = 0;
+            totalItems = levelData.items.length;
+            modal.style.display = 'none';
+            
+            levelIndicator.textContent = `Màn ${index + 1}: ${levelData.title}`;
+            scoreIndicator.textContent = `Tiến độ: 0/${totalItems}`;
+            robotText.textContent = levelData.introText;
+
+            playRobot(levelData.introAudio);
+
+            // Render Zones
+            zonesRow.innerHTML = '';
+            levelData.types.forEach(type => {
+                const def = zoneDefinitions[type];
+                const zone = document.createElement('div');
+                zone.className = 'drop-zone';
+                zone.dataset.accept = type;
+                zone.innerHTML = `<div class="zone-title">${def.label}</div><img src="${def.icon}" class="zone-icon-img" alt="${def.label}">`;
+                zone.addEventListener('dragover', dragOver);
+                zone.addEventListener('dragleave', dragLeave);
+                zone.addEventListener('drop', drop);
+                zonesRow.appendChild(zone);
+            });
+
+            // Render Items
+            itemsRow.innerHTML = '';
+            const shuffledItems = [...levelData.items].sort(() => Math.random() - 0.5);
+            shuffledItems.forEach(item => {
+                const el = document.createElement('div');
+                el.className = 'draggable';
+                el.draggable = true;
+                el.dataset.type = item.type;
+                el.id = item.id;
+                el.innerHTML = `<img src="${item.img}" alt="${item.name}"><span>${item.name}</span>`;
+                el.addEventListener('dragstart', dragStart);
+                el.addEventListener('dragend', dragEnd);
+                el.addEventListener('touchstart', handleTouchStart, {passive: false});
+                el.addEventListener('touchend', handleTouchEnd);
+                itemsRow.appendChild(el);
+            });
+        }
+
+        // Logic Kéo Thả & Touch
+        let draggedItem = null;
+        function dragStart() { draggedItem = this; setTimeout(() => this.style.opacity = '0.4', 0); }
+        function dragEnd() { if(draggedItem) draggedItem.style.opacity = '1'; draggedItem = null; }
+        function dragOver(e) { e.preventDefault(); this.classList.add('active-zone'); }
+        function dragLeave() { this.classList.remove('active-zone'); }
+        function drop(e) {
+            e.preventDefault(); this.classList.remove('active-zone');
+            if (!draggedItem) return;
+            checkMatch(draggedItem.dataset.type, this.dataset.accept, draggedItem, this);
+        }
+
+        let touchItem = null;
+        function handleTouchStart(e) { touchItem = this; }
+        function handleTouchEnd(e) {
+            if (!touchItem) return;
+            const touch = e.changedTouches[0];
+            touchItem.hidden = true;
+            const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            touchItem.hidden = false;
+            const zone = elemBelow ? elemBelow.closest('.drop-zone') : null;
+            if (zone) checkMatch(touchItem.dataset.type, zone.dataset.accept, touchItem, zone);
+            touchItem = null;
+        }
+
+        function checkMatch(itemType, zoneType, itemElement, zoneElement) {
+            if (itemType === zoneType) {
+                playSound('correct');
+                zoneElement.appendChild(itemElement);
+                itemElement.draggable = false;
+                itemElement.style.cursor = 'default';
+                itemElement.style.transform = 'scale(0.8)';
+                correctCount++;
+                scoreIndicator.textContent = `Tiến độ: ${correctCount}/${totalItems}`;
+                robotText.textContent = "Chính xác! Bé giỏi quá!";
+                if (correctCount === totalItems) setTimeout(levelComplete, 500);
+            } else {
+                playSound('wrong');
+                robotText.textContent = "Sai rồi! Thử lại nhé!";
+                itemElement.animate([{transform:'translateX(0)'}, {transform:'translateX(-10px)'}, {transform:'translateX(10px)'}, {transform:'translateX(0)'}], {duration:300});
+            }
+        }
+
+        function levelComplete() {
+            const levelData = gameData[currentLevelIndex];
+            playRobot(levelData.successAudio);
+            modalTitle.textContent = "Màn chơi hoàn tất! 🎉";
+            modalMsg.textContent = levelData.successText;
+            
+            if (currentLevelIndex < gameData.length - 1) {
+                nextBtn.style.display = 'inline-block';
+                nextBtn.textContent = "Màn tiếp theo ➔";
+                nextBtn.onclick = nextLevel;
+            } else {
+                nextBtn.style.display = 'inline-block';
+                nextBtn.textContent = "Chơi lại từ đầu 🏁";
+                nextBtn.onclick = () => loadLevel(0);
+                modalTitle.textContent = "CHÚC MỪNG CHIẾN THẮNG!";
+                modalMsg.textContent = "Bé đã xuất sắc hoàn thành tất cả nhiệm vụ!";
+            }
+            modal.style.display = 'flex';
+        }
+
+        function restartLevel() { loadLevel(currentLevelIndex); }
+        function nextLevel() { if(currentLevelIndex < gameData.length - 1) loadLevel(currentLevelIndex + 1); }
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            if (type === 'correct') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime+0.1);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime+0.5);
+                osc.start(); osc.stop(audioCtx.currentTime+0.5);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime+0.2);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime+0.3);
+                osc.start(); osc.stop(audioCtx.currentTime+0.3);
+            }
+        }
+    </script>
+</body>
+</html>
