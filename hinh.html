@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bé Ghép Xe Ô Tô - Có Nhạc Nền</title>
+    <style>
+        body { font-family: 'Comic Sans MS', cursive, sans-serif; background-color: #e0f7fa; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; user-select: none; }
+        h1 { color: #006064; margin-bottom: 10px; text-shadow: 2px 2px white; }
+        .controls-top { margin-bottom: 15px; display: flex; gap: 15px; align-items: center; }
+        button, .btn-link { padding: 10px 20px; font-size: 18px; border: none; border-radius: 50px; cursor: pointer; box-shadow: 0 4px rgba(0,0,0,0.2); transition: transform 0.1s; font-family: 'Comic Sans MS', sans-serif; font-weight: bold; text-decoration: none; display: inline-block; }
+        button:active, .btn-link:active { transform: translateY(3px); box-shadow: none; }
+        .btn-menu { background-color: #ff5722; color: white; }
+        .btn-music { background-color: #ffca28; color: #5d4037; } .btn-reset { background-color: #29b6f6; color: white; }
+        #reference-img { position: fixed; top: 20px; right: 20px; width: 150px; border: 5px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.3); border-radius: 10px; z-index: 1000; transition: transform 0.3s; cursor: pointer; }
+        #reference-img:hover { transform: scale(2.5); transform-origin: top right; }
+        #game-container { display: flex; gap: 30px; align-items: flex-start; }
+        #palette { width: 160px; background: #ffffff; border: 4px dashed #00bcd4; border-radius: 15px; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        #board { position: relative; width: 800px; height: 560px; border: 6px solid #ff9800; border-radius: 15px; background-color: white; background-image: linear-gradient(rgba(255,255,255,0.6), rgba(255,255,255,0.6)), url('ghep3.jpg'); background-size: cover; background-position: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .shape { cursor: grab; filter: drop-shadow(3px 3px 4px rgba(0,0,0,0.3)); transition: transform 0.2s; z-index: 100; }
+        .shape:active { cursor: grabbing; transform: scale(1.1); }
+        .trapezoid { width: 200px; height: 100px; background-color: #29b6f6; clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%); }
+        .rectangle { width: 280px; height: 70px; background-color: #ffeb3b; border: 2px solid #fbc02d; }
+        .circle { width: 65px; height: 65px; background-color: #795548; border-radius: 50%; border: 3px solid #5d4037; }
+        .drop-zone { position: absolute; background: rgba(0, 0, 0, 0.05); border: 2px dashed #ff7043; box-sizing: border-box; }
+        .drop-zone.hovered { background: rgba(0, 255, 0, 0.2); border: 2px solid green; }
+        #zone-top { top: 24%; left: 35%; width: 220px; height: 110px; clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%); }
+        #zone-body { top: 41%; left: 30%; width: 300px; height: 80px; }
+        #zone-wheel1 { top: 52%; left: 39%; width: 70px; height: 70px; border-radius: 50%; }
+        #zone-wheel2 { top: 52%; left: 53%; width: 70px; height: 70px; border-radius: 50%; }
+        #success-msg { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); flex-direction: column; justify-content: center; align-items: center; z-index: 2000; color: white; text-align: center; }
+        #success-msg h2 { font-size: 60px; color: #ffeb3b; margin: 0; animation: bounce 1s infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+    </style>
+</head>
+<body>
+    <img id="reference-img" src="ghep3.jpg" title="Di chuột để xem hình mẫu" alt="Hình mẫu">
+    <h1>🚗 Bé Làm Nhà thiết kế 🚗</h1>
+    <p class="creator-name">Người thực hiện: Trần Hồng Loan</p>
+    <div class="controls-top">
+        <a href="index.html" class="btn-link btn-menu">🏠 Về Menu</a>
+        <button class="btn-music" onclick="toggleMusic()">🎵 Bật/Tắt Nhạc</button>
+        <button class="btn-reset" onclick="location.reload()">🔄 Chơi Lại</button>
+    </div>
+    <div id="game-container">
+        <div id="palette">
+            <h3>Kho Hình</h3>
+            <div class="shape trapezoid" draggable="true" id="drag-top"></div>
+            <div class="shape rectangle" draggable="true" id="drag-body"></div>
+            <div class="shape circle" draggable="true" id="drag-wheel1"></div>
+            <div class="shape circle" draggable="true" id="drag-wheel2"></div>
+        </div>
+        <div id="board">
+            <div class="drop-zone" id="zone-top" data-accept="drag-top"></div>
+            <div class="drop-zone" id="zone-body" data-accept="drag-body"></div>
+            <div class="drop-zone" id="zone-wheel1" data-accept="wheel"></div>
+            <div class="drop-zone" id="zone-wheel2" data-accept="wheel"></div>
+        </div>
+    </div>
+    <div id="success-msg">
+        <h2>🎉 HOAN HÔ! 🎉</h2>
+        <p>Bé đã hoàn thành xuất sắc!</p>
+        <button class="btn-reset" onclick="location.reload()" style="font-size: 24px; padding: 15px 30px;">Chơi Lại Nhé</button>
+    </div>
+    <audio id="bg-music" loop><source src="music.mp3" type="audio/mpeg"></audio>
+    <script>
+        const bgMusic = document.getElementById('bg-music'); let isMusicPlaying = false;
+        function toggleMusic() { if (isMusicPlaying) { bgMusic.pause(); isMusicPlaying = false; } else { bgMusic.play().catch(()=>{}); isMusicPlaying = true; } }
+        const draggables = document.querySelectorAll('.shape'); const dropZones = document.querySelectorAll('.drop-zone'); const successMsg = document.getElementById('success-msg'); let count = 0;
+        draggables.forEach(elem => { elem.addEventListener('dragstart', (e) => { e.dataTransfer.setData("text", e.target.id); if(e.target.id.includes('wheel')) e.dataTransfer.setData("type", "wheel"); }); });
+        dropZones.forEach(zone => {
+            zone.addEventListener('dragover', (e) => { e.preventDefault(); if(!zone.hasChildNodes()) zone.classList.add('hovered'); });
+            zone.addEventListener('dragleave', () => zone.classList.remove('hovered'));
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault(); zone.classList.remove('hovered'); if (zone.hasChildNodes()) return;
+                const draggedId = e.dataTransfer.getData("text"); const draggedType = e.dataTransfer.getData("type"); const requiredId = zone.getAttribute('data-accept');
+                let isCorrect = (draggedId === requiredId) || (requiredId === 'wheel' && draggedType === 'wheel');
+                if (isCorrect) {
+                    const original = document.getElementById(draggedId); zone.appendChild(original);
+                    original.style.position = 'static'; original.style.margin = '0'; original.setAttribute('draggable', 'false'); original.style.cursor = 'default';
+                    zone.style.border = 'none'; zone.style.background = 'transparent'; count++;
+                    if(count === 4) setTimeout(() => successMsg.style.display = 'flex', 500);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

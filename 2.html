@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bé Học Hình Khối - Trần Hồng Loan</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Hình nền xe tải rõ nét */
+        .background-container {
+            background-image: url('1.jpg');
+            height: 100vh;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: contain;
+            background-color: #ffffff;
+            position: absolute;
+            width: 100%;
+            z-index: 1;
+        }
+
+        /* Câu hỏi ở góc trên */
+        .header-question {
+            position: relative;
+            z-index: 10;
+            top: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .question-box {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px 40px;
+            border-radius: 50px;
+            border: 4px solid #FFD600;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        h2 { margin: 0; color: #E64A19; font-size: 26px; }
+
+        /* Đáp án ở phía dưới */
+        .footer-answer {
+            position: absolute;
+            bottom: 30px;
+            width: 100%;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .btn-check {
+            background: linear-gradient(to bottom, #4CAF50, #2E7D32);
+            color: white;
+            padding: 12px 35px;
+            font-size: 22px;
+            font-weight: bold;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 6px #1B5E20;
+            transition: 0.1s;
+        }
+
+        .btn-check:active {
+            box-shadow: 0 2px #1B5E20;
+            transform: translateY(4px);
+        }
+
+        #result-panel {
+            display: none;
+            margin-top: 15px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            border: 3px solid #03A9F4;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+            animation: bounceIn 0.6s;
+        }
+
+        .result-item {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 5px 0;
+            display: block;
+        }
+
+        /* Nút điều khiển nhạc */
+        .music-control {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            padding: 10px;
+            cursor: pointer;
+            border: 2px solid #4CAF50;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="bgMusic" loop>
+        <source src="music.mp3" type="audio/mpeg">
+    </audio>
+
+    <div class="music-control" onclick="toggleMusic()" title="Bật/Tắt nhạc">
+        <span id="musicIcon">🎵</span>
+    </div>
+
+    <div class="background-container"></div>
+
+    <div class="header-question">
+        <div class="question-box">
+            <h2>Bé đếm xem có bao nhiêu hình Tam giác,Hình Vuông và Hình Tròn?</h2>
+        </div>
+    </div>
+
+    <div class="footer-answer">
+        <button class="btn-check" onclick="toggleAnswer()">KIỂM TRA ĐÁP ÁN</button>
+        
+        <div id="result-panel">
+            <span class="result-item" style="color: #FF5722;">🔺 04 Hình Tam giác</span>
+            <span class="result-item" style="color: #FFC107;">⏹️ 07 Hình Vuông</span>
+            <span class="result-item" style="color: #2196F3;">🔵 10 Hình Tròn</span>
+        </div>
+    </div>
+
+    <script>
+        var music = document.getElementById("bgMusic");
+        var musicIcon = document.getElementById("musicIcon");
+
+        // Phát nhạc khi người dùng tương tác lần đầu (do chính sách trình duyệt)
+        document.body.addEventListener('click', function() {
+            if (music.paused) {
+                music.play();
+                musicIcon.innerText = "⏸️";
+            }
+        }, { once: true });
+
+        function toggleMusic() {
+            if (music.paused) {
+                music.play();
+                musicIcon.innerText = "⏸️";
+            } else {
+                music.pause();
+                musicIcon.innerText = "🎵";
+            }
+        }
+
+        function toggleAnswer() {
+            var panel = document.getElementById("result-panel");
+            if (panel.style.display === "none" || panel.style.display === "") {
+                panel.style.display = "block";
+            } else {
+                panel.style.display = "none";
+            }
+        }
+    </script>
+
+</body>
+</html>

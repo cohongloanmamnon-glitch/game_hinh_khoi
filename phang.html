@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VŨ ĐIỆU CỦA HÌNH PHẲNG</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #ff6f91; --bg: #fff9c4; }
+        body { margin: 0; padding: 0; font-family: 'Patrick Hand', cursive; background: var(--bg); height: 100vh; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
+        .header { text-align: center; margin-top: 10px; z-index: 10; }
+        h1 { color: #d84315; font-size: 2rem; margin: 0; text-shadow: 2px 2px white; }
+        .creator { color: #5d4037; font-size: 1rem; }
+        .btn-home { position: fixed; top: 15px; left: 15px; z-index: 9999; background: white; color: #d84315; text-decoration: none; font-weight: bold; font-size: 1.2rem; padding: 8px 15px; border-radius: 20px; border: 2px solid #d84315; box-shadow: 0 4px rgba(0,0,0,0.1); transition: transform 0.2s; display: flex; align-items: center; gap: 5px; }
+        .btn-home:hover { transform: scale(1.1); background: #ffe0b2; }
+        #game-board { position: relative; width: 90vw; height: 65vh; margin-top: 15px; background: rgba(255,255,255,0.4); border-radius: 25px; border: 6px solid white; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .shape { position: absolute; width: 100px; height: 100px; display: flex; justify-content: center; align-items: center; transform: translate(-50%, -50%); transition: all 0.8s ease-in-out; }
+        .shape-bg { width: 85px; height: 85px; z-index: 1; border: 3px solid white; }
+        .type-circle .shape-bg { background: #ff4757; border-radius: 50%; }
+        .type-square .shape-bg { background: #1e90ff; border-radius: 12px; }
+        .type-rectangle .shape-bg { background: #9b59b6; width: 120px; height: 70px; border-radius: 8px; }
+        .type-triangle .shape-bg { width: 0; height: 0; background: transparent; border-left: 50px solid transparent; border-right: 50px solid transparent; border-bottom: 90px solid #fbc02d; }
+        .content-media { position: absolute; width: 140px; height: 140px; display: none; z-index: 5; object-fit: contain; }
+        .shape.active .content-media { display: block; animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .shape.active .shape-bg { opacity: 0.1; }
+        @keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1.1); } }
+        #character { position: absolute; width: 80px; height: 100px; background: url('begai.png') no-repeat center bottom/contain; z-index: 20; transform: translate(-50%, -100%); transition: all 1s cubic-bezier(0.45, 0.05, 0.55, 0.95); filter: drop-shadow(0 5px 8px rgba(0,0,0,0.2)); }
+        .jumping { animation: snakeJump 0.5s infinite alternate; }
+        @keyframes snakeJump { from { margin-top: 0; } to { margin-top: -45px; } }
+        .controls { margin-top: 20px; display: flex; gap: 15px; }
+        button { padding: 12px 35px; font-size: 1.5rem; font-family: inherit; color: white; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; transition: 0.3s; box-shadow: 0 5px rgba(0,0,0,0.2); }
+        #btn-start { background: #4caf50; }
+        #btn-reset { background: #ff9800; }
+        button:active { transform: translateY(3px); box-shadow: none; }
+        .hidden { display: none !important; }
+        #music-toggle { position: fixed; top: 15px; right: 15px; width: 45px; height: 45px; background: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 100; border: 2px solid #ddd; }
+    </style>
+</head>
+<body>
+    <audio id="bg-music" loop><source src="music.mp3" type="audio/mpeg"></audio>
+    <a href="index.html" class="btn-home">🏠 Về Menu</a>
+    <div id="music-toggle" onclick="toggleMusic()">🔊</div>
+    <div class="header">
+        <h1>🐍 VŨ ĐIỆU HÌNH PHẲNG 🐍</h1>
+        <div class="creator">Người thực hiện: Trần Hồng Loan</div>
+    </div>
+    <div id="game-board"></div>
+    <div class="controls">
+        <button id="btn-start" onclick="startGame()">Bắt đầu chơi ▶</button>
+        <button id="btn-reset" class="hidden" onclick="resetGame()">Chơi lại nào ↺</button>
+    </div>
+    <script>
+        const baseShapes = [ { type: 'type-circle', file: 'tron-votay.mp4', isVideo: true }, { type: 'type-square', file: 'v-duatay.gif', isVideo: false }, { type: 'type-triangle', file: 'tamgiac-votay.gif', isVideo: false }, { type: 'type-rectangle', file: 'cn-damchan.gif', isVideo: false } ];
+        const shapesConfig = []; for(let i=0; i<9; i++) shapesConfig.push(baseShapes[i % baseShapes.length]);
+        const board = document.getElementById('game-board'); const bgMusic = document.getElementById('bg-music');
+        let shapeElements = []; let currentIndex = 0;
+        function init() {
+            board.innerHTML = ''; shapeElements = []; const cols = 3;
+            for (let i = 0; i < 9; i++) {
+                let row = Math.floor(i / cols); let col = (row % 2 === 0) ? (i % cols) : (cols - 1 - (i % cols));
+                const el = document.createElement('div'); el.className = `shape ${shapesConfig[i].type}`;
+                el.style.left = `${20 + col * 30}%`; el.style.top = `${20 + row * 28}%`;
+                let mediaHtml = shapesConfig[i].isVideo ? `<video src="${shapesConfig[i].file}" class="content-media" autoplay loop muted playsinline></video>` : `<img src="${shapesConfig[i].file}" class="content-media">`;
+                el.innerHTML = `<div class="shape-bg"></div>${mediaHtml}`; board.appendChild(el); shapeElements.push({ element: el });
+            }
+            const char = document.createElement('div'); char.id = 'character'; board.appendChild(char); updateCharPos();
+        }
+        function updateCharPos() { const char = document.getElementById('character'); const target = shapeElements[currentIndex].element; char.style.left = target.style.left; char.style.top = target.style.top; }
+        function toggleMusic() { if (bgMusic.paused) { bgMusic.play(); document.getElementById('music-toggle').innerText = "🔊"; } else { bgMusic.pause(); document.getElementById('music-toggle').innerText = "🔇"; } }
+        async function startGame() {
+            document.getElementById('btn-start').classList.add('hidden'); document.getElementById('btn-reset').classList.add('hidden');
+            shapeElements.forEach(s => s.element.classList.remove('active')); bgMusic.volume = 0.5; bgMusic.play().catch(() => {});
+            const char = document.getElementById('character'); char.classList.add('jumping'); const targetIndex = Math.floor(Math.random() * 6) + 3; 
+            for (let i = 0; i <= targetIndex; i++) { currentIndex = i; updateCharPos(); await new Promise(resolve => setTimeout(resolve, 3000)); }
+            char.classList.remove('jumping'); const finalShape = shapeElements[currentIndex]; finalShape.element.classList.add('active'); document.getElementById('btn-reset').classList.remove('hidden');
+        }
+        function resetGame() { document.getElementById('btn-reset').classList.add('hidden'); shapeElements.forEach(s => s.element.classList.remove('active')); currentIndex = 0; updateCharPos(); setTimeout(startGame, 1000); }
+        window.onload = init;
+    </script>
+</body>
+</html>

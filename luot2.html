@@ -3,221 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bé Vui Cùng Những Hình Đáng Yêu
-	     Thực hiện TRẦN HỒNG LOAN</title>
+    <title>Bé Vui Cùng Những Hình Đáng Yêu - Trần Hồng Loan</title>
     <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
-    
     <style>
-        :root {
-            --primary-color: #ffeb3b;
-            --board-width: 90vw;  
-            --board-height: 65vh; 
-        }
-
-        body {
-            margin: 0; padding: 0;
-            font-family: 'Patrick Hand', cursive;
-            /* Tích hợp hình nền nen.jpg */
-            background-image: url('nen.jpg');
-            background-size: cover;
-            background-position: center;
-            display: flex; justify-content: center; align-items: center;
-            height: 100vh; overflow: hidden;
-        }
-
-        .game-container {
-            width: 100%;
-            display: flex; flex-direction: column; align-items: center;
-            background: rgba(0, 0, 0, 0.4); /* Làm tối nền để nổi bật trò chơi */
-            padding: 20px;
-        }
-
-        #game-board {
-            position: relative; 
-            width: var(--board-width); 
-            height: var(--board-height);
-            background: rgba(255, 255, 255, 0.15);
-            border: 5px solid #fff;
-            border-radius: 20px;
-            backdrop-filter: blur(5px);
-        }
-
-        .cell {
-            position: absolute;
-            width: 100px; height: 100px;
-            display: flex; justify-content: center; align-items: center;
-            border-radius: 15px;
-            background-color: rgba(255, 255, 255, 0.8);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-
-        .cell img.object-img {
-            width: 85%; height: 85%; object-fit: contain;
-            transition: opacity 0.3s;
-        }
-
-        /* Đáp án hình khối hiện ra */
-        .shape-result {
-            position: absolute;
-            width: 110%; height: 110%;
-            z-index: 10;
-            transform: scale(0);
-            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .cell.revealed .shape-result { transform: scale(1.4); }
-        .cell.revealed .object-img { opacity: 0.2; }
-
-        #character {
-            position: absolute; width: 80px; height: 100px;
-            background-image: url('begai.png');
-            background-size: contain; background-repeat: no-repeat;
-            z-index: 100; transition: all 0.4s ease-out;
-            filter: drop-shadow(0 5px 10px rgba(255,255,255,0.5));
-        }
-
-        .countdown-overlay {
-            position: absolute; font-size: 5rem; color: #fff;
-            font-weight: bold; z-index: 110; display: none;
-            text-shadow: 0 0 20px #ff0000;
-            pointer-events: none;
-        }
-
+        :root { --primary-color: #ffeb3b; --board-width: 90vw; --board-height: 70vh; }
+        body { margin: 0; padding: 0; font-family: 'Patrick Hand', cursive; background-image: url('nen.jpg'); background-size: cover; background-position: center; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        .game-container { width: 100%; display: flex; flex-direction: column; align-items: center; background: rgba(0, 0, 0, 0.4); padding: 20px; }
+        #game-board { position: relative; width: var(--board-width); height: var(--board-height); background: rgba(255, 255, 255, 0.15); border: 5px solid #fff; border-radius: 20px; backdrop-filter: blur(5px); }
+        .cell { position: absolute; width: 120px; height: 120px; display: flex; justify-content: center; align-items: center; border-radius: 15px; background-color: rgba(255, 255, 255, 0.8); box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: all 0.3s ease; }
+        .cell img.object-img { width: 85%; height: 85%; object-fit: contain; }
+        .shape-result { position: absolute; width: 100px; height: 100px; right: -110px; top: 10px; z-index: 10; opacity: 0; transform: scale(0); transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); background: white; border-radius: 10px; border: 3px solid #ff4081; }
+        .cell.revealed { border: 5px solid #ffeb3b; transform: scale(1.1); }
+        .cell.revealed .shape-result { opacity: 1; transform: scale(1); }
+        #character { position: absolute; width: 80px; height: 100px; background-image: url('begai.png'); background-size: contain; background-repeat: no-repeat; z-index: 100; transition: all 0.5s ease-out; filter: drop-shadow(0 5px 10px rgba(255,255,255,0.5)); }
+        .countdown-overlay { position: absolute; font-size: 5rem; color: #fff; font-weight: bold; z-index: 110; display: none; text-shadow: 0 0 20px #ff0000; pointer-events: none; }
         .controls { margin-top: 20px; }
-        button {
-            background: #ff4081; color: white; border: none;
-            padding: 12px 35px; font-size: 1.5rem; border-radius: 50px;
-            cursor: pointer; font-family: inherit; box-shadow: 0 4px #c2185b;
-        }
+        button { background: #ff4081; color: white; border: none; padding: 12px 35px; font-size: 1.5rem; border-radius: 50px; cursor: pointer; font-family: inherit; box-shadow: 0 4px #c2185b; }
         button:hover { background: #f50057; }
-
-        #music-toggle {
-            position: absolute; top: 10px; right: 10px;
-            padding: 10px; border-radius: 50%; cursor: pointer;
-            background: rgba(255,255,255,0.7); font-size: 20px;
-        }
+        .btn-home { position: fixed; top: 15px; left: 15px; z-index: 2000; background: white; color: #ff4081; text-decoration: none; font-weight: bold; font-size: 1.2rem; padding: 8px 15px; border-radius: 20px; border: 2px solid #ff4081; box-shadow: 0 4px rgba(0,0,0,0.2); transition: transform 0.2s; display: flex; align-items: center; gap: 5px; }
+        .btn-home:hover { transform: scale(1.1); background: #fce4ec; }
+        #music-toggle { position: absolute; top: 10px; right: 10px; padding: 10px; border-radius: 50%; cursor: pointer; background: rgba(255,255,255,0.7); font-size: 20px; }
     </style>
 </head>
 <body>
-
     <audio id="bg-music" src="music.mp3" loop></audio>
     <audio id="audio-count" src="dem.wav"></audio>
-
+    <a href="index.html" class="btn-home">🏠 Về Menu</a>
     <div id="music-toggle" onclick="toggleMusic()">🎵</div>
-
     <div class="game-container">
-        <h1 style="color: #fff; text-shadow: 2px 2px 4px #000;">🚀 Bé Vui Cùng Những Hình Đáng Yêu  🚀</h1>
-
-	    <h2 style="color: #fff; text-shadow: 2px 2px 4px #000;">Thực hiện TRẦN HỒNG LOAN </h2>
-        
-        <div id="game-board">
-            <div id="countdown" class="countdown-overlay">5</div>
-        </div>
-
+        <h1 style="color: #fff; text-shadow: 2px 2px 4px #000; margin-bottom: 5px;">🚀 Bé Tài Giỏi 🚀</h1>
+	    <h2 style="color: #fff; text-shadow: 2px 2px 4px #000; margin-top: 0;">Thực hiện TRẦN HỒNG LOAN</h2>
+        <div id="game-board"><div id="countdown" class="countdown-overlay">5</div></div>
         <div class="controls">
             <button id="btn-start" onclick="startGame()">Bắt đầu bay! ▶</button>
-            <button id="btn-reset" onclick="location.reload()" class="hidden" style="display:none;">Chơi lại ↺</button>
+            <button id="btn-reset" onclick="location.reload()" style="display:none;">Chơi lại ↺</button>
         </div>
     </div>
-
     <script>
-        // Sửa lỗi mapping: Đảm bảo cam, bong, cam1 hiện khoitron.png
-        const config = [
-            { bg: 'cam.jpg', result: 'khoitron.png' },    
-            { bg: 'hopsua.png', result: 'khoichunhat.png' }, 
-            { bg: 'lonnuoc.jpg', result: 'khoitru.png' },   
-            { bg: 'hopqua.png', result: 'khoivuong.png' },  
-            { bg: 'bong.jpg', result: 'khoitron.png' },      
-            { bg: 'gach.jpg', result: 'khoichunhat.png' },  
-            { bg: 'lonsua.jpg', result: 'khoitru.png' },    
-            { bg: 'cam1.jpg', result: 'khoitron.png' },
-            { bg: 'pin.jpg', result: 'khoitru.png' }        
-        ];
-
-        const board = document.getElementById('game-board');
-        const audioCount = document.getElementById('audio-count');
-        const bgMusic = document.getElementById('bg-music');
-        const countdownEl = document.getElementById('countdown');
-        let cells = [];
-        let currentIndex = 0;
-
+        const config = [ { bg: 'cam.jpg', result: 'khoitron.png' }, { bg: 'hopsua.png', result: 'khoichunhat.png' }, { bg: 'lonnuoc.jpg', result: 'khoitru.png' }, { bg: 'hopqua.png', result: 'khoivuong.png' }, { bg: 'bong.jpg', result: 'khoitron.png' }, { bg: 'gach.jpg', result: 'khoichunhat.png' }, { bg: 'lonsua.jpg', result: 'khoitru.png' }, { bg: 'cam1.jpg', result: 'khoitron.png' }, { bg: 'pin.jpg', result: 'khoitru.png' } ];
+        const board = document.getElementById('game-board'); const audioCount = document.getElementById('audio-count');
+        const bgMusic = document.getElementById('bg-music'); const countdownEl = document.getElementById('countdown');
+        let cells = []; let currentIndex = 0;
         function init() {
             const cols = 3;
             config.forEach((item, i) => {
-                const col = i % cols;
-                const row = Math.floor(i / cols);
-                
-                const cell = document.createElement('div');
-                cell.className = 'cell';
-                cell.style.left = (col * 30 + 5) + '%';
-                cell.style.top = (row * 30 + 5) + '%';
-                
-                cell.innerHTML = `
-                    <img src="${item.bg}" class="object-img">
-                    <img src="${item.result}" class="shape-result">
-                `;
-                board.appendChild(cell);
-                cells.push(cell);
+                const col = i % cols; const row = Math.floor(i / cols);
+                const cell = document.createElement('div'); cell.className = 'cell';
+                cell.style.left = (col * 30 + 8) + '%'; cell.style.top = (row * 30 + 5) + '%';
+                cell.innerHTML = `<img src="${item.bg}" class="object-img"><img src="${item.result}" class="shape-result">`;
+                board.appendChild(cell); cells.push(cell);
             });
-
-            const char = document.createElement('div');
-            char.id = 'character';
-            board.appendChild(char);
-            moveChar(0);
+            const char = document.createElement('div'); char.id = 'character'; board.appendChild(char); moveChar(0);
         }
-
-        function toggleMusic() {
-            if (bgMusic.paused) bgMusic.play();
-            else bgMusic.pause();
-        }
-
-        function moveChar(index) {
-            const target = cells[index];
-            const char = document.getElementById('character');
-            char.style.left = target.style.left;
-            char.style.top = `calc(${target.style.top} - 30px)`;
-        }
-
+        function toggleMusic() { if (bgMusic.paused) bgMusic.play(); else bgMusic.pause(); }
+        function moveChar(index) { const target = cells[index]; const char = document.getElementById('character'); char.style.left = target.style.left; char.style.top = `calc(${target.style.top} - 40px)`; }
         function startGame() {
-            bgMusic.play(); // Bật nhạc nền khi chơi
-            document.getElementById('btn-start').style.display = 'none';
-            let steps = 10 + Math.floor(Math.random() * 8);
-            let count = 0;
-
+            bgMusic.play(); document.getElementById('btn-start').style.display = 'none';
+            let steps = 5 + Math.floor(Math.random() * 5); let count = 0;
             const walk = setInterval(() => {
-                currentIndex = (currentIndex + 1) % cells.length;
-                moveChar(currentIndex);
-                count++;
-                if (count >= steps) {
-                    clearInterval(walk);
-                    runCountdown();
-                }
-            }, 300);
+                currentIndex = (currentIndex + 1) % cells.length; moveChar(currentIndex); count++;
+                if (count >= steps) { clearInterval(walk); runCountdown(); }
+            }, 3000); 
         }
-
         function runCountdown() {
-            let timer = 5;
-            countdownEl.style.display = 'block';
-            countdownEl.style.left = cells[currentIndex].style.left;
-            countdownEl.style.top = `calc(${cells[currentIndex].style.top} - 80px)`;
-            
+            let timer = 5; countdownEl.style.display = 'block'; countdownEl.style.left = cells[currentIndex].style.left; countdownEl.style.top = `calc(${cells[currentIndex].style.top} - 80px)`;
             const timerId = setInterval(() => {
-                countdownEl.innerText = timer;
-                
-                // Khớp âm thanh dem.wav với từng giây
-                audioCount.currentTime = (5 - timer); 
-                audioCount.play();
-
-                if (timer <= 0) {
-                    clearInterval(timerId);
-                    countdownEl.style.display = 'none';
-                    cells[currentIndex].classList.add('revealed');
-                    document.getElementById('btn-reset').style.display = 'inline-block';
-                }
+                countdownEl.innerText = timer; audioCount.currentTime = (5 - timer); audioCount.play();
+                if (timer <= 0) { clearInterval(timerId); countdownEl.style.display = 'none'; cells[currentIndex].classList.add('revealed'); document.getElementById('btn-reset').style.display = 'inline-block'; }
                 timer--;
             }, 1000);
         }
-
         init();
     </script>
 </body>
