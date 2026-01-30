@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bé Tập Đếm Khối Rô-bốt</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #e0f7fa; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 20px; }
+        h1 { color: #00796b; text-transform: uppercase; margin-bottom: 10px; margin-top: 40px; } /* Thêm margin-top để tránh nút back */
+        
+        .game-container { background: white; padding: 30px; border-radius: 30px; box-shadow: 0 15px 30px rgba(0,0,0,0.15); text-align: center; width: 80%; max-width: 1200px; }
+        .robot-img { width: 350px; border-radius: 15px; margin-bottom: 25px; }
+        .quiz-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
+        .shape-card { border: 3px solid #b2dfdb; padding: 15px; border-radius: 20px; background: #f1f8e9; transition: transform 0.3s; }
+        .shape-card:hover { transform: translateY(-5px); }
+        .shape-name { font-size: 1.2em; font-weight: bold; margin-bottom: 10px; }
+        .options-group { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
+        .btn-option { padding: 10px 20px; font-size: 18px; border: 2px solid #00796b; background: white; border-radius: 10px; cursor: pointer; font-weight: bold; color: #00796b; }
+        .btn-option.selected { background-color: #00796b; color: white; }
+        .btn-check { margin-top: 30px; padding: 20px 60px; font-size: 24px; background-color: #ff9800; color: white; border: none; border-radius: 50px; cursor: pointer; box-shadow: 0 5px 15px rgba(255,152,0,0.4); transition: all 0.2s; }
+        .btn-check:hover { background-color: #f57c00; transform: scale(1.05); }
+        #result-message { margin-top: 20px; font-weight: bold; font-size: 1.5em; min-height: 1.6em; }
+
+        /* Nút quay về Menu */
+        .home-btn {
+            position: fixed; top: 15px; left: 15px;
+            background: #fff; border: 2px solid #00796b; color: #00796b;
+            padding: 10px 20px; border-radius: 30px; text-decoration: none;
+            font-weight: bold; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: flex; align-items: center; gap: 5px;
+        }
+        .home-btn:hover { background: #e0f2f1; }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="home-btn">🏠 Menu Chính</a>
+
+    <h1>Kỹ sư nhí đếm hình</h1>
+    
+    <div class="game-container">
+        <img src="robot.png" alt="Robot" class="robot-img">
+        
+        <p style="font-size: 1.2em;">Bé hãy quan sát Rô-bốt và chọn số lượng đúng cho mỗi loại khối nhé!</p>
+
+        <div class="quiz-section">
+            <div class="shape-card">
+                <div class="shape-name">🟦 Khối vuông</div>
+                <div class="options-group" data-type="vuong">
+                    <button class="btn-option" onclick="selectNumber(this, 'vuong', 2)">2</button>
+                    <button class="btn-option" onclick="selectNumber(this, 'vuong', 4)">4</button>
+                    <button class="btn-option" onclick="selectNumber(this, 'vuong', 6)">6</button>
+                </div>
+            </div>
+            <div class="shape-card">
+                <div class="shape-name">🟨 Khối chữ nhật</div>
+                <div class="options-group" data-type="chunhat">
+                    <button class="btn-option" onclick="selectNumber(this, 'chunhat', 2)">2</button>
+                    <button class="btn-option" onclick="selectNumber(this, 'chunhat', 4)">4</button>
+                    <button class="btn-option" onclick="selectNumber(this, 'chunhat', 6)">6</button>
+                </div>
+            </div>
+            <div class="shape-card">
+                <div class="shape-name">🔴 Khối cầu</div>
+                <div class="options-group" data-type="cau">
+                    <button class="btn-option" onclick="selectNumber(this, 'cau', 4)">4</button>
+                    <button class="btn-option" onclick="selectNumber(this, 'cau', 6)">6</button>
+                    <button class="btn-option" onclick="selectNumber(this, 'cau', 7)">7</button>
+                </div>
+            </div>
+            <div class="shape-card">
+                <div class="shape-name">🟩 Khối trụ</div>
+                <div class="options-group" data-type="tru">
+                    <button class="btn-option" onclick="selectNumber(this, 'tru', 2)">2</button>
+                    <button class="btn-option" onclick="selectNumber(this, 'tru', 4)">4</button>
+                    <button class="btn-option" onclick="selectNumber(this, 'tru', 5)">5</button>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-check" onclick="checkAnswer()">Kiểm tra kết quả</button>
+        <div id="result-message"></div>
+    </div>
+
+    <audio id="bgMusic" loop src="music.mp3"></audio>
+    <audio id="soundCorrect" src="clap.mp3"></audio>
+    <audio id="soundWrong" src="wrong.mp3"></audio>
+
+    <script>
+        let choices = { vuong: 0, chunhat: 0, cau: 0, tru: 0 };
+        window.onclick = function() {
+            const music = document.getElementById('bgMusic');
+            if (music.paused) music.play().catch(e => console.log("Cần tương tác"));
+        }
+        function selectNumber(btn, type, value) {
+            const parent = btn.parentElement;
+            parent.querySelectorAll('.btn-option').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            choices[type] = value;
+        }
+        function checkAnswer() {
+            const msg = document.getElementById('result-message');
+            const isCorrect = (choices.vuong === 2 && choices.chunhat === 4 && choices.cau === 7 && choices.tru === 2);
+            if (isCorrect) {
+                msg.innerText = "Chính xác! Bé là kỹ sư tài ba! 🌟";
+                msg.style.color = "#2e7d32";
+                document.getElementById('soundCorrect').play();
+            } else {
+                msg.innerText = "Bé đếm lại các khối một lần nữa nhé!";
+                msg.style.color = "#c62828";
+                document.getElementById('soundWrong').play();
+            }
+        }
+    </script>
+</body>
+</html>

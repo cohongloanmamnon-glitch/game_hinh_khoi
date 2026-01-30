@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trò chơi đếm hình cho bé 5 tuổi</title>
+<style>
+  body { font-family: "Comic Sans MS", "Chalkboard SE", sans-serif; background-color: #e0f7fa; text-align: center; margin: 0; padding: 0; overflow: hidden; }
+  #start-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.95); z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+  #start-btn { padding: 20px 40px; font-size: 30px; background-color: #ff6600; color: white; border: none; border-radius: 50px; cursor: pointer; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+  h1 { color: #ff6600; text-shadow: 2px 2px #fff; margin-top: 40px; }
+  .game-area { margin: 10px auto; width: 90%; max-width: 600px; border: 5px solid #66ccff; border-radius: 20px; padding: 20px; background-color: #ffffff; box-shadow: 0 10px 20px rgba(0,0,0,0.1); display: none; }
+  img { width: 100%; max-width: 350px; border-radius: 15px; border: 3px dashed #ccc; margin-bottom: 10px; }
+  .question { font-size: 24px; font-weight: bold; color: #0066cc; margin: 15px 0; min-height: 60px; }
+  .answers { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
+  .answers button { background-color: #ffcc00; border: 4px solid #f5b041; color: #fff; text-shadow: 1px 1px 0 #bf9000; font-weight: bold; padding: 15px 25px; border-radius: 50%; font-size: 24px; cursor: pointer; transition: transform 0.2s; width: 70px; height: 70px; }
+  .answers button:hover { background-color: #ff9900; transform: scale(1.1); }
+  .answers button:active { transform: scale(0.9); }
+  #result { font-size: 28px; font-weight: bold; margin-top: 20px; height: 40px; }
+
+  /* Nút quay về Menu */
+  .home-btn {
+      position: fixed; top: 15px; left: 15px;
+      background: #fff; border: 2px solid #ff6600; color: #ff6600;
+      padding: 10px 20px; border-radius: 30px; text-decoration: none;
+      font-weight: bold; z-index: 5000; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      display: block; /* Hiện nút kể cả khi game chưa start */
+  }
+  .home-btn:hover { background: #fff3e0; }
+</style>
+</head>
+<body>
+
+<a href="index.html" class="home-btn">🏠 Menu</a>
+
+<div id="start-screen">
+  <h1>👋 Chào bé yêu!</h1>
+  <p style="font-size: 20px;">Bé đã sẵn sàng đếm hình chưa?</p>
+  <button id="start-btn" onclick="startGame()">▶️ CHƠI NGAY</button>
+</div>
+
+<div class="game-area" id="gameArea">
+  <h1>🎨 Bé Tập Đếm Hình 🎲</h1>
+  <img src="ghep3.jpg" alt="Hình xe ô tô lắp ghép">
+  <div class="question" id="question">Đang tải câu hỏi...</div>
+  <div class="answers" id="answers"></div>
+  <div id="result"></div>
+</div>
+
+<script>
+const bgMusic = new Audio('music.mp3'); 
+bgMusic.loop = true; bgMusic.volume = 0.2;
+const sndCorrect = new Audio('clap.mp3');
+const sndWrong = new Audio('wrong.mp3');
+
+const questions = [
+  { text: "Có bao nhiêu hình vuông?", audioFile: "baonhieuvuong.wav", correct: 1, options: [1, 2, 3, 4] },
+  { text: "Có bao nhiêu hình chữ nhật?", audioFile: "baonhieuchunhat.wav", correct: 1, options: [1, 2, 3, 4] },
+  { text: "Có bao nhiêu hình tròn?", audioFile: "baonhieutron.wav", correct: 4, options: [1, 2, 3, 4] },
+  { text: "Có bao nhiêu hình tam giác?", audioFile: "baonhieutamgiac.wav", correct: 2, options: [1, 2, 3, 4] }
+];
+
+let currentQuestionIndex = 0;
+let currentAudio = null;
+
+function startGame() {
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('gameArea').style.display = 'block';
+  bgMusic.play().catch(e => console.log("Chưa thể phát nhạc nền: " + e));
+  loadQuestion();
+}
+
+function playQuestionAudio(filename) {
+  if (currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; }
+  currentAudio = new Audio(filename);
+  currentAudio.play().catch(e => console.error("Không tìm thấy file: " + filename));
+}
+
+function loadQuestion() {
+  const q = questions[currentQuestionIndex];
+  document.getElementById("question").textContent = q.text;
+  document.getElementById("result").textContent = "";
+  playQuestionAudio(q.audioFile);
+  const answersDiv = document.getElementById("answers");
+  answersDiv.innerHTML = "";
+  q.options.forEach(opt => {
+    const btn = document.createElement("button");
+    btn.textContent = opt;
+    btn.onclick = () => checkAnswer(opt);
+    answersDiv.appendChild(btn);
+  });
+}
+
+function checkAnswer(userAnswer) {
+  const q = questions[currentQuestionIndex];
+  const resultDiv = document.getElementById("result");
+  if (userAnswer === q.correct) {
+    resultDiv.textContent = "🎉 Hoan hô! Đúng rồi!";
+    resultDiv.style.color = "#009900";
+    sndCorrect.play();
+    setTimeout(() => {
+      currentQuestionIndex++;
+      if (currentQuestionIndex < questions.length) { loadQuestion(); } else { finishGame(); }
+    }, 2000);
+  } else {
+    resultDiv.textContent = "❌ Sai rồi, bé thử lại nhé!";
+    resultDiv.style.color = "red";
+    sndWrong.play();
+  }
+}
+
+function finishGame() {
+  const gameArea = document.getElementById("gameArea");
+  gameArea.innerHTML = `
+    <h2 style="color: #ff0066; font-size: 35px;">🏆 CHÚC MỪNG BÉ! 🏆</h2>
+    <p style="font-size: 20px;">Bé đã trả lời đúng hết các câu hỏi rồi.</p>
+    <br>
+    <button onclick="location.reload()" style="padding: 15px 30px; font-size: 20px; background: #33cc33; color: white; border: none; border-radius: 10px; cursor: pointer; margin-top: 20px;">Chơi lại</button>
+  `;
+}
+</script>
+</body>
+</html>

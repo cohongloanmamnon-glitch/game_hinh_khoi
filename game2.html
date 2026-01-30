@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Bé Vui Học Hình Học - Cô Loan</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Varela+Round&display=swap');
+        :root { --primary: #FF6B6B; --secondary: #4ECDC4; --bg: #FFF9E6; }
+        body { font-family: 'Varela Round', sans-serif; background-color: var(--bg); margin: 0; overflow: hidden; display: flex; flex-direction: column; align-items: center; height: 100vh; touch-action: none; user-select: none; }
+        header { background: #fff; width: 100%; padding: 15px 0; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h1 { color: var(--primary); margin: 0; font-size: 1.4rem; }
+        #instruction { color: #555; font-size: 1.2rem; margin-top: 5px; font-weight: bold; min-height: 30px;}
+        #drop-zone { width: 350px; height: 350px; background: white; border-radius: 20px; border: 4px dashed #FFB74D; position: relative; margin: 15px auto; box-shadow: inset 0 0 20px rgba(0,0,0,0.05); }
+        #toolbox { width: 100%; height: 130px; background: #FFF; border-top: 5px solid var(--secondary); display: flex; justify-content: center; align-items: center; gap: 15px; position: absolute; bottom: 0; padding-bottom: 10px; }
+        .stick { border-radius: 8px; position: absolute; cursor: pointer; z-index: 100; box-shadow: 3px 3px 5px rgba(0,0,0,0.2); transition: transform 0.1s; }
+        .stick:active { transform: scale(1.1); }
+        .stick-normal { width: 120px; height: 16px; background: #F39C12; border: 2px solid #D35400; }
+        .stick-long { width: 160px; height: 16px; background: #3498DB; border: 2px solid #2980B9; }
+        .stick-short { width: 90px; height: 16px; background: #E74C3C; border: 2px solid #C0392B; }
+        .target { background: rgba(0,0,0,0.05); border: 2px dashed #BDC3C7; border-radius: 8px; position: absolute; z-index: 1; }
+        #start-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 3000; }
+        .big-btn { background: #FF6B6B; color: white; border: none; padding: 20px 60px; font-size: 2rem; border-radius: 60px; cursor: pointer; font-family: inherit; font-weight: bold; box-shadow: 0 8px 0 #D35400; transition: transform 0.1s; animation: pulse 1.5s infinite; }
+        .big-btn:active { transform: translateY(5px); box-shadow: 0 2px 0 #D35400; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        #victory-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; flex-direction: column; z-index: 2000; }
+        .btn { background: #FFE66D; border: none; padding: 15px 40px; font-size: 1.3rem; border-radius: 50px; cursor: pointer; font-weight: bold; color: #D35400; box-shadow: 0 4px 0 #F1C40F; margin-top: 20px; }
+
+        /* Nút quay về Menu */
+        .home-btn {
+            position: fixed; top: 15px; left: 15px;
+            background: #fff; border: 2px solid #FF6B6B; color: #FF6B6B;
+            padding: 8px 15px; border-radius: 30px; text-decoration: none;
+            font-weight: bold; z-index: 4000; /* Cao hơn cả overlay */
+            box-shadow: 0 4px 5px rgba(0,0,0,0.1); font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+<a href="index.html" class="home-btn">🏠 Menu</a>
+
+<div id="start-overlay">
+    <h1 style="font-size: 3rem; margin-bottom: 40px; color: #4ECDC4;">BÉ VUI HỌC HÌNH</h1>
+    <button class="big-btn" onclick="startGame()">BẤM ĐỂ BẮT ĐẦU</button>
+    <p style="margin-top: 20px; color: #666;">(Bé nhớ bật loa lên nhé!)</p>
+</div>
+
+<header>
+    <h1>BÉ KHÉO TAY - CÔ LOAN</h1>
+    <div id="instruction"></div>
+</header>
+<div id="drop-zone"></div>
+<div id="toolbox"></div>
+<div id="victory-modal">
+    <h2 style="color: #FFE66D; font-size: 2.5rem; text-shadow: 2px 2px #D35400;">HOAN HÔ! 🎉</h2>
+    <div style="font-size: 4rem;">🌟🌟🌟</div>
+    <button class="btn" onclick="nextLevel()">Hình tiếp theo</button>
+</div>
+
+<script>
+    const audioFiles = { triangle: new Audio('canhtamgiac.wav'), square: new Audio('canhvuong.wav'), rectangle: new Audio('canhchunhat.wav'), win_voice: new Audio('hoanho.wav'), clap: new Audio('clap.mp3'), wrong: new Audio('wrong.mp3') };
+    function playAudio(name) {
+        if(!audioFiles[name]) return;
+        audioFiles.triangle.pause(); audioFiles.triangle.currentTime = 0;
+        audioFiles.square.pause(); audioFiles.square.currentTime = 0;
+        audioFiles.rectangle.pause(); audioFiles.rectangle.currentTime = 0;
+        audioFiles.win_voice.pause(); audioFiles.win_voice.currentTime = 0;
+        var playPromise = audioFiles[name].play();
+        if (playPromise !== undefined) { playPromise.catch(error => console.log("Trình duyệt chặn âm thanh")); }
+    }
+    const levels = [
+        { name: "Hình Tam Giác", hint: "Bé tìm 3 que màu cam xếp hình tam giác nhé!", audioKey: "triangle", targets: [ { x: 175, y: 150, w: 120, a: 0, t: "normal" }, { x: 145, y: 202, w: 120, a: 60, t: "normal" }, { x: 205, y: 202, w: 120, a: -60, t: "normal" } ], inv: ["normal", "normal", "normal"] },
+        { name: "Hình Vuông", hint: "Bé xếp 4 que bằng nhau thành hình vuông nào!", audioKey: "square", targets: [ { x: 175, y: 115, w: 120, a: 0, t: "normal" }, { x: 175, y: 235, w: 120, a: 0, t: "normal" }, { x: 115, y: 175, w: 120, a: 90, t: "normal" }, { x: 235, y: 175, w: 120, a: 90, t: "normal" } ], inv: ["normal", "normal", "normal", "normal"] },
+        { name: "Hình Chữ Nhật", hint: "Hình chữ nhật: 2 que xanh dài, 2 que đỏ ngắn.", audioKey: "rectangle", targets: [ { x: 175, y: 130, w: 160, a: 0, t: "long" }, { x: 175, y: 220, w: 160, a: 0, t: "long" }, { x: 95, y: 175, w: 90, a: 90, t: "short" }, { x: 255, y: 175, w: 90, a: 90, t: "short" } ], inv: ["long", "long", "short", "short"] }
+    ];
+    let currentLvl = 0; let placed = 0; let audioCtx = null;
+    function startGame() { document.getElementById('start-overlay').style.display = 'none'; if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); initLevel(); }
+    function playTing() { if (!audioCtx) return; const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); osc.type = 'sine'; osc.frequency.setValueAtTime(600, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1); gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3); osc.start(); osc.stop(audioCtx.currentTime + 0.3); }
+    function initLevel() { const lvl = levels[currentLvl]; placed = 0; document.getElementById('instruction').textContent = lvl.hint; const dz = document.getElementById('drop-zone'); const tb = document.getElementById('toolbox'); dz.innerHTML = ''; tb.innerHTML = ''; document.getElementById('victory-modal').style.display = 'none'; playAudio(lvl.audioKey); lvl.targets.forEach((t, i) => { const el = document.createElement('div'); el.className = `target stick-${t.t}`; el.style.width = t.w + 'px'; el.style.height = '16px'; el.style.left = (t.x - t.w/2) + 'px'; el.style.top = (t.y - 8) + 'px'; el.style.transform = `rotate(${t.a}deg)`; el.dataset.filled = "false"; dz.appendChild(el); }); lvl.inv.forEach((type, i) => { const s = document.createElement('div'); s.className = `stick stick-${type}`; s.dataset.type = type; s.style.position = 'relative'; tb.appendChild(s); makeDraggable(s); }); }
+    function makeDraggable(el) { let isDrag = false; let offset = {x:0, y:0}; const start = (e) => { if(el.classList.contains('placed')) return; isDrag = true; const t = e.touches ? e.touches[0] : e; const rect = el.getBoundingClientRect(); offset.x = t.clientX - rect.left; offset.y = t.clientY - rect.top; el.style.position = 'fixed'; el.style.zIndex = 1000; el.style.width = rect.width + 'px'; }; const move = (e) => { if(!isDrag) return; e.preventDefault(); const t = e.touches ? e.touches[0] : e; el.style.left = (t.clientX - offset.x) + 'px'; el.style.top = (t.clientY - offset.y) + 'px'; }; const end = () => { if(!isDrag) return; isDrag = false; checkDrop(el); }; el.addEventListener('mousedown', start); el.addEventListener('touchstart', start, {passive: false}); window.addEventListener('mousemove', move); window.addEventListener('touchmove', move, {passive: false}); window.addEventListener('mouseup', end); window.addEventListener('touchend', end); }
+    function checkDrop(el) { const elRect = el.getBoundingClientRect(); const ex = elRect.left + elRect.width/2; const ey = elRect.top + elRect.height/2; const targets = document.querySelectorAll('.target'); let hit = false; targets.forEach(t => { if(hit || t.dataset.filled === "true") return; const tRect = t.getBoundingClientRect(); const tx = tRect.left + tRect.width/2; const ty = tRect.top + tRect.height/2; const dist = Math.hypot(ex - tx, ey - ty); if(dist < 50 && el.dataset.type === t.className.split('-').pop()) { hit = true; t.dataset.filled = "true"; el.classList.add('placed'); el.style.position = 'absolute'; el.style.left = t.style.left; el.style.top = t.style.top; el.style.transform = t.style.transform; el.style.boxShadow = "none"; document.getElementById('drop-zone').appendChild(el); playTing(); placed++; if(placed === levels[currentLvl].targets.length) { setTimeout(() => { const clapAudio = new Audio('clap.mp3'); clapAudio.play(); setTimeout(() => { playAudio('win_voice'); }, 1000); document.getElementById('victory-modal').style.display = 'flex'; }, 500); } } }); if(!hit) { const wrongAudio = new Audio('wrong.mp3'); wrongAudio.play(); el.style.transition = "all 0.3s"; el.style.position = 'relative'; el.style.left = '0'; el.style.top = '0'; el.style.zIndex = 100; document.getElementById('toolbox').appendChild(el); setTimeout(() => { el.style.transition = ""; }, 300); } }
+    function nextLevel() { currentLvl = (currentLvl + 1) % levels.length; initLevel(); }
+</script>
+</body>
+</html>
