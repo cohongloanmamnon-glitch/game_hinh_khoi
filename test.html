@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kỹ Sư Nhí Đếm Hình - Đa Cấp Độ</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #e0f7fa; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 20px; min-height: 100vh; }
+        h1 { color: #00796b; text-transform: uppercase; margin-top: 40px; text-shadow: 2px 2px #fff; }
+        
+        .game-container { background: white; padding: 30px; border-radius: 30px; box-shadow: 0 15px 30px rgba(0,0,0,0.15); text-align: center; width: 90%; max-width: 1000px; }
+        .level-indicator { font-size: 1.2em; color: #00796b; font-weight: bold; margin-bottom: 10px; background: #b2dfdb; display: inline-block; padding: 5px 20px; border-radius: 20px; }
+        
+        /* Chỗ hiển thị ảnh từ file tải lên */
+        .image-display { width: 100%; max-height: 400px; object-fit: contain; border-radius: 15px; margin-bottom: 25px; border: 5px solid #f1f8e9; }
+        
+        .quiz-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 20px; }
+        .shape-card { border: 3px solid #b2dfdb; padding: 15px; border-radius: 20px; background: #f1f8e9; }
+        .shape-name { font-size: 1.1em; font-weight: bold; margin-bottom: 10px; }
+        
+        .options-group { display: flex; justify-content: center; gap: 8px; }
+        .btn-option { padding: 10px 15px; font-size: 16px; border: 2px solid #00796b; background: white; border-radius: 10px; cursor: pointer; font-weight: bold; color: #00796b; transition: 0.2s; }
+        .btn-option.selected { background-color: #00796b; color: white; transform: scale(1.1); }
+        
+        .controls { margin-top: 30px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        .btn-check { padding: 15px 50px; font-size: 22px; background-color: #ff9800; color: white; border: none; border-radius: 50px; cursor: pointer; box-shadow: 0 5px 15px rgba(255,152,0,0.4); }
+        .btn-check:hover { background-color: #f57c00; }
+        .btn-next { padding: 12px 40px; font-size: 18px; background-color: #4caf50; color: white; border: none; border-radius: 50px; cursor: pointer; display: none; }
+
+        #result-message { font-weight: bold; font-size: 1.4em; min-height: 1.5em; margin-top: 15px; }
+        .home-btn { position: fixed; top: 15px; left: 15px; background: #fff; border: 2px solid #00796b; color: #00796b; padding: 8px 15px; border-radius: 30px; text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="home-btn">🏠 Menu</a>
+    <h1>Kỹ sư nhí đếm hình</h1>
+    
+    <div class="game-container">
+        <div id="level-title" class="level-indicator">Vòng 1: Đếm khối Rô-bốt</div>
+        <img id="game-image" src="robot.png" alt="Câu hỏi" class="image-display">
+        
+        <p id="instruction" style="font-size: 1.1em;">Bé hãy nhìn hình và chọn số lượng đúng nhé!</p>
+
+        <div id="quiz-area" class="quiz-section">
+            </div>
+
+        <div class="controls">
+            <div id="result-message"></div>
+            <button id="check-btn" class="btn-check" onclick="checkCurrentLevel()">Kiểm tra kết quả</button>
+            <button id="next-btn" class="btn-next" onclick="nextLevel()">Sang vòng tiếp theo ➡️</button>
+        </div>
+    </div>
+
+    <audio id="soundCorrect" src="clap.mp3"></audio>
+    <audio id="soundWrong" src="wrong.mp3"></audio>
+
+    <script>
+        // CẤU HÌNH DỮ LIỆU CÁC MÀN CHƠI
+        // Bạn thay tên file ảnh (4.jpg, 5.jpg, 6.jpg) vào đây
+        const levels = [
+            {
+                title: "Vòng 1: Chú Rô-bốt thông minh",
+                image: "robot.png",
+                questions: [
+                    { label: "🟦 Khối vuông", key: "vuong", answer: 2, options: [2, 4, 6] },
+                    { label: "🟨 Khối chữ nhật", key: "chunhat", answer: 8, options: [2, 5, 8] },
+                    { label: "🔴 Khối cầu", key: "cau", answer: 10, options: [4, 6, 10] },
+                    { label: "🟩 Khối trụ", key: "tru", answer: 2, options: [2, 4, 5] }
+                ]
+            },
+            {
+                title: "Vòng 2: Đồ vật quanh bé",
+                image: "4.jpg", // Ảnh các hộp sữa, rubik, gạch...
+                questions: [
+                    { label: "🟨 Khối chữ nhật", key: "chunhat", answer: 5, options: [3, 4, 5] }, // Hộp sữa, gạch, loa, hộp bánh
+                    { label: "🟦 Khối vuông", key: "vuong", answer: 2, options: [1, 2, 3] }, // Rubik, hộp khăn giấy
+                    { label: "🔴 Khối cầu", key: "cau", answer: 1, options: [1, 2, 3] }, // Bóng rổ
+                    { label: "🟩 Khối trụ", key: "tru", answer: 1, options: [1, 2, 3] }  // Hộp táo Rockit
+                ]
+            },
+            {
+                title: "Vòng 3: Thử thách quan sát",
+                image: "5.jpg", // Ảnh bình nước, xúc xắc, bóng đá...
+                questions: [
+                    { label: "🟦 Khối vuông", key: "vuong", answer: 2, options: [2, 3, 4] }, // Quà, xúc xắc
+                    { label: "🟨 Khối chữ nhật", key: "chunhat", answer: 3, options: [2, 3, 4] }, // Quyển sách, hộp giấy, hộp bánh
+                    { label: "🔴 Khối cầu", key: "cau", answer: 3, options: [3, 4, 5] }, // Bóng đá, tennis, đèn tròn, quả cầu
+                    { label: "🟩 Khối trụ", key: "tru", answer: 4, options: [3, 4, 5] }  // Bình nước, đèn pin, hộp cầu lông, hộp hạt điều
+                ]
+            },
+            {
+                title: "Vòng 4: Nội thất trong nhà",
+                image: "6.jpg", // Ảnh tủ lạnh, kệ, ghế...
+                questions: [
+                    { label: "🟨 Khối chữ nhật", key: "chunhat", answer: 4, options: [1, 2,4 ] }, // Tủ lạnh, Kệ tủ
+                    { label: "🟦 Khối vuông", key: "vuong", answer: 0, options: [0, 1, 2] }, // Ô vuông trong kệ
+                    { label: "🟩 Khối trụ", key: "tru", answer: 3, options: [1, 2, 3] }  // Loa/Lọ trên kệ
+                ]
+            }
+        ];
+
+        let currentLevelIndex = 0;
+        let userChoices = {};
+
+        function loadLevel() {
+            const level = levels[currentLevelIndex];
+            document.getElementById('level-title').innerText = level.title;
+            document.getElementById('game-image').src = level.image;
+            document.getElementById('result-message').innerText = "";
+            document.getElementById('next-btn').style.display = "none";
+            document.getElementById('check-btn').style.display = "block";
+            
+            const quizArea = document.getElementById('quiz-area');
+            quizArea.innerHTML = ""; // Xóa màn cũ
+            userChoices = {};
+
+            level.questions.forEach(q => {
+                userChoices[q.key] = null;
+                
+                const card = document.createElement('div');
+                card.className = 'shape-card';
+                card.innerHTML = `<div class="shape-name">${q.label}</div>`;
+                
+                const optionsGroup = document.createElement('div');
+                optionsGroup.className = 'options-group';
+                
+                q.options.forEach(num => {
+                    const btn = document.createElement('button');
+                    btn.className = 'btn-option';
+                    btn.innerText = num;
+                    btn.onclick = function() {
+                        // Xóa class selected trong cùng nhóm
+                        optionsGroup.querySelectorAll('.btn-option').forEach(b => b.classList.remove('selected'));
+                        btn.classList.add('selected');
+                        userChoices[q.key] = num;
+                    };
+                    optionsGroup.appendChild(btn);
+                });
+                
+                card.appendChild(optionsGroup);
+                quizArea.appendChild(card);
+            });
+        }
+
+        function checkCurrentLevel() {
+            const level = levels[currentLevelIndex];
+            const msg = document.getElementById('result-message');
+            
+            // Kiểm tra xem đã chọn đủ chưa
+            const completed = level.questions.every(q => userChoices[q.key] !== null);
+            if (!completed) {
+                msg.innerText = "Bé hãy chọn đủ các hình nhé!";
+                msg.style.color = "#f57c00";
+                return;
+            }
+
+            // Kiểm tra đáp án
+            const isCorrect = level.questions.every(q => userChoices[q.key] === q.answer);
+
+            if (isCorrect) {
+                msg.innerText = "Chính xác! Bé giỏi quá! 🌟";
+                msg.style.color = "#2e7d32";
+                document.getElementById('soundCorrect').play();
+                document.getElementById('check-btn').style.display = "none";
+                document.getElementById('next-btn').style.display = "block";
+                
+                if (currentLevelIndex === levels.length - 1) {
+                    document.getElementById('next-btn').innerText = "Hoàn thành tất cả! 🎉";
+                    document.getElementById('next-btn').onclick = () => location.reload();
+                }
+            } else {
+                msg.innerText = "Bé đếm lại một chút nhé! Thử lại nào.";
+                msg.style.color = "#c62828";
+                document.getElementById('soundWrong').play();
+            }
+        }
+
+        function nextLevel() {
+            currentLevelIndex++;
+            if (currentLevelIndex < levels.length) {
+                loadLevel();
+            }
+        }
+
+        // Khởi tạo màn 1
+        window.onload = loadLevel;
+    </script>
+</body>
+</html>
